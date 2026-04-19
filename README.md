@@ -75,6 +75,6 @@ El desarrollo del sistema se realiza bajo **Scrum**, organizando el trabajo en:
 ## 💡 **Autoría y Derechos**
 
 Desarrollado por el equipo **Sucha-Soft Studios**
-<img width="2048" height="2048" alt="Gemini_Generated_Image_ae8jxhae8jxhae8j (1)" src="https://github.com/user-attachments/assets/74e8e8a0-97aa-4270-9cca-eb92980f1496" />
+<img width="100" height="100" alt="Gemini_Generated_Image_ae8jxhae8jxhae8j (1)" src="https://github.com/user-attachments/assets/74e8e8a0-97aa-4270-9cca-eb92980f1496" />
 📍 Proyecto académico – **Universidad del Valle (UNIVALLE Bolivia)**
 © 2026 Todos los derechos reservados.
