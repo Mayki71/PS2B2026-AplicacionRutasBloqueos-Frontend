@@ -1,0 +1,22 @@
+:root {
+  --color-black: #000000;
+  --color-navy: #14213D;
+  --color-accent: #FCA311;
+  --color-light: #E5E5E5;
+  --color-white: #FFFFFF;
+
+  --color-navy-card: #1a2b4a;
+  --color-navy-hover: #1c3257;
+
+  --font-primary: 'Inter', 'Segoe UI', sans-serif;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+
+  --shadow-btn: 0 4px 14px rgba(0, 0, 0, 0.18);
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.12);
+
+  --transition-fast: 200ms ease;
+  --transition-base: 300ms ease;
+}
