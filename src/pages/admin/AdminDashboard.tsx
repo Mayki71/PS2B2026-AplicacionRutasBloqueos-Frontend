@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getUsuarios, getReportes } from '../../modules/admin/services/adminService';
+import Map from 'react-map-gl';
+import { NavigationControl, Marker } from 'react-map-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 
 export default function AdminDashboard() {
-
   const [usuarios, setUsuarios] = useState<any[]>([]);
   const [reportes, setReportes] = useState<any[]>([]);
   const navigate = useNavigate();
@@ -15,7 +17,6 @@ export default function AdminDashboard() {
 
   return (
     <div className="flex h-screen bg-gray-100">
-
       {/* SIDEBAR */}
       <div className="w-64 bg-gray-200 p-5">
         <h2 className="text-xl font-bold">PAZLY</h2>
@@ -49,7 +50,6 @@ export default function AdminDashboard() {
 
       {/* CONTENIDO */}
       <div className="flex-1">
-
         {/* HEADER */}
         <div className="bg-orange-500 text-white p-5 text-2xl font-bold shadow">
           Dashboard General
@@ -84,23 +84,33 @@ export default function AdminDashboard() {
 
         {/* MAPA + REPORTES */}
         <div className="flex gap-5 px-5">
-
           {/* MAPA */}
           <div className="flex-1 bg-orange-500 p-4 rounded-xl shadow">
             <div className="flex justify-between text-white mb-2">
               <h3 className="font-bold">Mapa en tiempo real</h3>
               <span className="text-sm cursor-pointer">Ver completo</span>
             </div>
-
-            <div className="bg-gray-300 h-72 rounded-lg flex items-center justify-center">
-              MAPA (próximamente real 😏)
+            <div className="h-72 rounded-lg overflow-hidden">
+              <Map
+                mapboxAccessToken={import.meta.env.VITE_MAPBOX_TOKEN}
+                initialViewState={{
+                  longitude: -68.1193,
+                  latitude: -16.4897,
+                  zoom: 12
+                }}
+                mapStyle="mapbox://styles/mapbox/streets-v12"
+              >
+                <NavigationControl position="top-right" />
+                <Marker longitude={-68.1193} latitude={-16.4897}>
+                  <div style={{ fontSize: "20px" }}>🚨</div>
+                </Marker>
+              </Map>
             </div>
           </div>
 
           {/* REPORTES */}
           <div className="w-80 bg-orange-500 p-4 rounded-xl shadow">
             <h3 className="text-white font-bold mb-3">Reportes recientes</h3>
-
             {reportes.slice(0, 5).map((r) => (
               <div
                 key={r.id_reporte}
@@ -109,20 +119,16 @@ export default function AdminDashboard() {
                 <p className="font-semibold">
                   {r.usuarios?.nombre} {r.usuarios?.apellido_paterno}
                 </p>
-
                 <p className="text-sm text-gray-600">
                   {r.descripcion}
                 </p>
-
                 <p className="text-xs text-gray-400">
                   {r.estados_reporte?.nombre_estado}
                 </p>
               </div>
             ))}
           </div>
-
         </div>
-
       </div>
     </div>
   );
