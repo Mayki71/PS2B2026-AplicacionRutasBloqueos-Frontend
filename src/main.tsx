@@ -4,6 +4,7 @@ import './index.css'
 import App from './App.tsx'
 import 'mapbox-gl/dist/mapbox-gl.css';
 
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />
