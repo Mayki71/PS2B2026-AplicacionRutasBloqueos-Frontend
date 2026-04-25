@@ -1,6 +1,7 @@
 import { useState, type FormEvent, type ChangeEvent } from "react";
 import "../../styles/login.css";
 import { authService } from "../../services/authService";
+import { useNavigate } from "react-router-dom";
 
 interface LoginFormData {
   email: string;
@@ -13,6 +14,9 @@ interface LoginFormProps {
 }
 
 const LoginForm = ({ onSwitchToRegister, isActive }: LoginFormProps) => {
+
+  const navigate = useNavigate(); // ✅ CORRECTO
+
   const [formData, setFormData] = useState<LoginFormData>({
     email: "",
     password: "",
@@ -36,19 +40,24 @@ const LoginForm = ({ onSwitchToRegister, isActive }: LoginFormProps) => {
         email: formData.email,
         password: formData.password,
       });
+
       localStorage.setItem("token", result.token);
       localStorage.setItem("usuario", JSON.stringify(result.usuario));
+
       console.log("Login exitoso:", result);
-      // aquí después redirigís al mapa
+
+      // 🚀 REDIRECCIÓN
+      if (result.usuario.es_administrador) {
+        navigate("/admin");
+      } else {
+        navigate("/mapa");
+      }
+
     } catch (err: any) {
       setError(err.message || "Email o contraseña incorrectos");
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleForgotPassword = (): void => {
-    console.log("Forgot password clicked");
   };
 
   return (
@@ -60,41 +69,45 @@ const LoginForm = ({ onSwitchToRegister, isActive }: LoginFormProps) => {
         </p>
       </div>
 
-       <form className="login-form" onSubmit={handleSubmit} noValidate>
+      <form className="login-form" onSubmit={handleSubmit} noValidate>
+
         <div className="login-form__field">
-          <label className="login-form__label" htmlFor="login-email">
-            Correo electrónico
-          </label>
-          <div className="login-form__input-wrapper">
-            <input className="login-form__input" id="login-email" type="email"
-              name="email" value={formData.email} onChange={handleChange}
-              placeholder="correo@ejemplo.com" autoComplete="email" />
-          </div>
+          <label className="login-form__label">Correo electrónico</label>
+          <input
+            className="login-form__input"
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+          />
         </div>
 
         <div className="login-form__field">
-          <label className="login-form__label" htmlFor="login-password">
-            Contraseña
-          </label>
-          <div className="login-form__input-wrapper">
-            <input className="login-form__input" id="login-password" type="password"
-              name="password" value={formData.password} onChange={handleChange}
-              placeholder="•••••••" autoComplete="current-password" />
-          </div>
+          <label className="login-form__label">Contraseña</label>
+          <input
+            className="login-form__input"
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+          />
         </div>
+
+        {error && (
+          <p style={{ color: "red", marginBottom: "10px" }}>
+            {error}
+          </p>
+        )}
 
         <button className="login-form__submit" type="submit" disabled={loading}>
-          {loading ? 'Ingresando...' : 'Iniciar Sesión'}
+          {loading ? "Ingresando..." : "Iniciar Sesión"}
         </button>
+
       </form>
 
       <p className="login-form__switch-text">
-        No tienes una cuenta?{" "}
-        <button
-          className="login-form__switch-link"
-          type="button"
-          onClick={onSwitchToRegister}
-        >
+        No tienes una cuenta?
+        <button onClick={onSwitchToRegister}>
           Registrate
         </button>
       </p>
