@@ -1,6 +1,7 @@
 import { useState, FormEvent, ChangeEvent } from "react";
 import "../../styles/login.css";
 import { authService } from "../../services/authService";
+import { useFormValidation } from "../../hooks/useFormValidation";
 
 interface LoginFormData {
   email: string;
@@ -17,31 +18,51 @@ const LoginForm = ({ onSwitchToRegister, isActive }: LoginFormProps) => {
     email: "",
     password: "",
   });
-
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [serverError, setServerError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const {
+    errors,
+    touchField,
+    validateAll,
+    setServerFieldErrors,
+    hasVisibleError,
+    hasAnyError,
+    resetValidation,
+  } = useFormValidation(["email", "password"]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    touchField(name, value);
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>): void => {
+    touchField(e.target.name, e.target.value);
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
-    setError(null);
-    setLoading(true);
+    setServerError(null);
 
+    const isValid = validateAll({
+      email: formData.email,
+      password: formData.password,
+    });
+    if (!isValid) return;
+
+    setLoading(true);
     try {
-      const result = await authService.login({
+      const result: any = await authService.login({
         email: formData.email,
         password: formData.password,
       });
       localStorage.setItem("token", result.token);
       localStorage.setItem("usuario", JSON.stringify(result.usuario));
-      console.log("Login exitoso:", result);
-      // aquí después redirigís al mapa
+      resetValidation();
+      setSuccessMessage("¡Sesión iniciada correctamente!");
     } catch (err: any) {
-      setError(err.message || "Email o contraseña incorrectos");
+      setServerError(err.message || "Error de conexión, intentá de nuevo");
     } finally {
       setLoading(false);
     }
@@ -60,36 +81,94 @@ const LoginForm = ({ onSwitchToRegister, isActive }: LoginFormProps) => {
         </p>
       </div>
 
-       <form className="login-form" onSubmit={handleSubmit} noValidate>
-        <div className="login-form__field">
+      {serverError && <div className="form-server-error">{serverError}</div>}
+      {successMessage && (
+        <div className="form-server-success" role="status">
+          ✓ {successMessage}
+        </div>
+      )}
+      <form className="login-form" onSubmit={handleSubmit} noValidate>
+        {/* Email */}
+        <div
+          className={`login-form__field ${hasVisibleError("email") ? "login-form__field--error" : ""}`}
+        >
           <label className="login-form__label" htmlFor="login-email">
             Correo electrónico
           </label>
           <div className="login-form__input-wrapper">
-            <input className="login-form__input" id="login-email" type="email"
-              name="email" value={formData.email} onChange={handleChange}
-              placeholder="correo@ejemplo.com" autoComplete="email" />
+            <input
+              className={`login-form__input ${hasVisibleError("email") ? "login-form__input--error" : ""}`}
+              id="login-email"
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              placeholder="correo@ejemplo.com"
+              autoComplete="email"
+              aria-invalid={hasVisibleError("email")}
+              aria-describedby={
+                hasVisibleError("email") ? "login-email-error" : undefined
+              }
+            />
           </div>
+          {hasVisibleError("email") && (
+            <span
+              className="form-field-error"
+              id="login-email-error"
+              role="alert"
+            >
+              {errors.email}
+            </span>
+          )}
         </div>
 
-        <div className="login-form__field">
+        {/* Contraseña */}
+        <div
+          className={`login-form__field ${hasVisibleError("password") ? "login-form__field--error" : ""}`}
+        >
           <label className="login-form__label" htmlFor="login-password">
             Contraseña
           </label>
           <div className="login-form__input-wrapper">
-            <input className="login-form__input" id="login-password" type="password"
-              name="password" value={formData.password} onChange={handleChange}
-              placeholder="•••••••" autoComplete="current-password" />
+            <input
+              className={`login-form__input ${hasVisibleError("password") ? "login-form__input--error" : ""}`}
+              id="login-password"
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              placeholder="•••••••"
+              autoComplete="current-password"
+              aria-invalid={hasVisibleError("password")}
+              aria-describedby={
+                hasVisibleError("password") ? "login-password-error" : undefined
+              }
+            />
           </div>
+          {hasVisibleError("password") && (
+            <span
+              className="form-field-error"
+              id="login-password-error"
+              role="alert"
+            >
+              {errors.password}
+            </span>
+          )}
         </div>
 
-        <button className="login-form__submit" type="submit" disabled={loading}>
-          {loading ? 'Ingresando...' : 'Iniciar Sesión'}
+        <button
+          className="login-form__submit"
+          type="submit"
+          disabled={loading || hasAnyError()}
+        >
+          {loading ? "Ingresando..." : "Iniciar Sesión"}
         </button>
       </form>
 
       <p className="login-form__switch-text">
-        No tienes una cuenta?{" "}
+        ¿No tienes cuenta?{" "}
         <button
           className="login-form__switch-link"
           type="button"

@@ -1,6 +1,7 @@
 import { useState, FormEvent, ChangeEvent } from "react";
 import "../../styles/register.css";
 import { authService } from "../../services/authService";
+import { useFormValidation } from "../../hooks/useFormValidation";
 
 interface RegisterFormData {
   email: string;
@@ -17,6 +18,15 @@ interface RegisterFormProps {
   isActive: boolean;
 }
 
+const VALIDATED_FIELDS = [
+  "nombre",
+  "apellido_paterno",
+  "apellido_materno",
+  "email",
+  // "telefono",
+  "password",
+];
+
 const RegisterForm = ({ onSwitchToLogin, isActive }: RegisterFormProps) => {
   const [formData, setFormData] = useState<RegisterFormData>({
     email: "",
@@ -28,7 +38,18 @@ const RegisterForm = ({ onSwitchToLogin, isActive }: RegisterFormProps) => {
     acceptedTerms: false,
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [serverError, setServerError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  const {
+    errors,
+    touchField,
+    validateAll,
+    setServerFieldErrors,
+    hasVisibleError,
+    hasAnyError,
+    resetValidation,
+  } = useFormValidation(VALIDATED_FIELDS);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
     const { name, value, type, checked } = e.target;
@@ -36,38 +57,86 @@ const RegisterForm = ({ onSwitchToLogin, isActive }: RegisterFormProps) => {
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
+    if (type !== "checkbox") touchField(name, value);
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>): void => {
+    if (e.target.type !== "checkbox") touchField(e.target.name, e.target.value);
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
-    e.preventDefault()
-    setError(null)
+    e.preventDefault();
+    setServerError(null);
 
     if (!formData.acceptedTerms) {
-      setError('Debes aceptar los términos y condiciones')
-      return
+      setServerError("Debés aceptar los términos y condiciones");
+      return;
     }
 
-    setLoading(true)
+    const isValid = validateAll({
+      nombre: formData.nombre,
+      apellido_paterno: formData.apellido_paterno,
+      apellido_materno: formData.apellido_materno,
+      email: formData.email,
+      // telefono: formData.telefono,
+      password: formData.password,
+    });
+    if (!isValid) return;
+
+    setLoading(true);
     try {
-      const result = await authService.register({
+      const result: any = await authService.register({
         email: formData.email,
         password: formData.password,
         nombre: formData.nombre,
         apellido_paterno: formData.apellido_paterno,
         apellido_materno: formData.apellido_materno,
         telefono: formData.telefono,
-      })
-      localStorage.setItem('token', result.token)
-      localStorage.setItem('usuario', JSON.stringify(result.usuario))
-      console.log('Registro exitoso:', result)
-      // aquí después redirigís al mapa
+      });
+      localStorage.setItem("token", result.token);
+      localStorage.setItem("usuario", JSON.stringify(result.usuario));
+      resetValidation();
+      setSuccessMessage("¡Cuenta creada correctamente! Redirigiendo...");
     } catch (err: any) {
-      setError(err.message || 'Error al registrarse')
+      setServerError(err.message || "Error de conexión, intentá de nuevo");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
-
+  };
+  const renderField = (
+    id: string,
+    name: string,
+    label: string,
+    type: string,
+    placeholder: string,
+  ) => (
+    <div
+      className={`register-form__field ${hasVisibleError(name) ? "register-form__field--error" : ""}`}
+    >
+      <label className="register-form__label" htmlFor={id}>
+        {label}
+      </label>
+      <div className="register-form__input-wrapper">
+        <input
+          className={`register-form__input ${hasVisibleError(name) ? "register-form__input--error" : ""}`}
+          id={id}
+          type={type}
+          name={name}
+          value={formData[name as keyof RegisterFormData] as string}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          placeholder={placeholder}
+          aria-invalid={hasVisibleError(name)}
+          aria-describedby={hasVisibleError(name) ? `${id}-error` : undefined}
+        />
+      </div>
+      {hasVisibleError(name) && (
+        <span className="form-field-error" id={`${id}-error`} role="alert">
+          {errors[name]}
+        </span>
+      )}
+    </div>
+  );
   return (
     <div className="register-form-container">
       <div className="register-form-section">
@@ -76,87 +145,85 @@ const RegisterForm = ({ onSwitchToLogin, isActive }: RegisterFormProps) => {
           Ingresa tus datos para continuar
         </p>
       </div>
-
-       <form className="register-form" onSubmit={handleSubmit} noValidate>
-        <div className="register-form__field">
-          <label className="register-form__label" htmlFor="reg-nombre">Nombre</label>
-          <div className="register-form__input-wrapper">
-            <input className="register-form__input" id="reg-nombre" type="text"
-              name="nombre" value={formData.nombre} onChange={handleChange}
-              placeholder="Ej. Juan" />
-          </div>
+      {serverError && (
+        <div className="form-server-error" role="alert">
+          {serverError}
         </div>
-
-        <div className="register-form__field">
-          <label className="register-form__label" htmlFor="reg-ap-paterno">Apellido Paterno</label>
-          <div className="register-form__input-wrapper">
-            <input className="register-form__input" id="reg-ap-paterno" type="text"
-              name="apellido_paterno" value={formData.apellido_paterno} onChange={handleChange}
-              placeholder="Ej. Pérez" />
-          </div>
+      )}
+      {successMessage && (
+        <div className="form-server-success" role="status">
+          ✓ {successMessage}
         </div>
-
-        <div className="register-form__field">
-          <label className="register-form__label" htmlFor="reg-ap-materno">Apellido Materno</label>
-          <div className="register-form__input-wrapper">
-            <input className="register-form__input" id="reg-ap-materno" type="text"
-              name="apellido_materno" value={formData.apellido_materno} onChange={handleChange}
-              placeholder="Ej. López" />
-          </div>
-        </div>
-
-        <div className="register-form__field">
-          <label className="register-form__label" htmlFor="reg-email">Correo electrónico</label>
-          <div className="register-form__input-wrapper">
-            <input className="register-form__input" id="reg-email" type="email"
-              name="email" value={formData.email} onChange={handleChange}
-              placeholder="correo@ejemplo.com" />
-          </div>
-        </div>
-{/* 
-        <div className="register-form__field">
-          <label className="register-form__label" htmlFor="reg-phone">Teléfono (+591)</label>
-          <div className="register-form__input-wrapper">
-            <input className="register-form__input" id="reg-phone" type="tel"
-              name="telefono" value={formData.telefono} onChange={handleChange}
-              placeholder="7XXXXXXX" />
-          </div>
-        </div> */}
-
-        <div className="register-form__field">
-          <label className="register-form__label" htmlFor="reg-password">Contraseña</label>
-          <div className="register-form__input-wrapper">
-            <input className="register-form__input" id="reg-password" type="password"
-              name="password" value={formData.password} onChange={handleChange}
-              placeholder="•••••••" />
-          </div>
-        </div>
+      )}
+      <form className="register-form" onSubmit={handleSubmit} noValidate>
+        {renderField("reg-nombre", "nombre", "Nombre", "text", "Ej. Juan")}
+        {renderField(
+          "reg-ap-paterno",
+          "apellido_paterno",
+          "Apellido Paterno",
+          "text",
+          "Ej. Pérez",
+        )}
+        {renderField(
+          "reg-ap-materno",
+          "apellido_materno",
+          "Apellido Materno",
+          "text",
+          "Ej. López",
+        )}
+        {renderField(
+          "reg-email",
+          "email",
+          "Correo electrónico",
+          "email",
+          "correo@ejemplo.com",
+        )}
+        {renderField(
+          "reg-password",
+          "password",
+          "Contraseña",
+          "password",
+          "•••••••",
+        )}
 
         <div className="register-form__checkbox-row">
-          <input className="register-form__checkbox" id="reg-terms" type="checkbox"
-            name="acceptedTerms" checked={formData.acceptedTerms} onChange={handleChange} />
+          <input
+            className="register-form__checkbox"
+            id="reg-terms"
+            type="checkbox"
+            name="acceptedTerms"
+            checked={formData.acceptedTerms}
+            onChange={handleChange}
+          />
           <label className="register-form__checkbox-label" htmlFor="reg-terms">
-            Acepto los{' '}
-            <a href="#terminos" className="register-form__terms-link"
-              onClick={(e) => e.preventDefault()}>
+            Acepto los{" "}
+            <a
+              href="#terminos"
+              className="register-form__terms-link"
+              onClick={(e) => e.preventDefault()}
+            >
               Términos y Condiciones
             </a>
           </label>
         </div>
 
-        <button className="register-form__submit" type="submit" disabled={loading}>
-          {loading ? 'Creando cuenta...' : 'Crear Cuenta'}
+        <button
+          className="register-form__submit"
+          type="submit"
+          disabled={loading || hasAnyError()}
+        >
+          {loading ? "Creando cuenta..." : "Crear Cuenta"}
         </button>
       </form>
 
       <p className="register-form__switch-text">
-        Ya tienes una cuenta?{" "}
+        ¿Ya tienes cuenta?{" "}
         <button
           className="register-form__switch-link"
           type="button"
           onClick={onSwitchToLogin}
         >
-          Inicia sesion
+          Inicia sesión
         </button>
       </p>
     </div>

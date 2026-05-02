@@ -1,4 +1,4 @@
-@import './variables.css';
+@import "./variables.css";
 
 .welcome-page {
   position: relative;
@@ -10,7 +10,9 @@
   overflow: hidden;
   opacity: 0;
   transform: translateY(12px);
-  transition: opacity 0.5s ease, transform 0.5s ease;
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s ease;
 }
 
 .welcome-page--visible {
@@ -40,14 +42,26 @@
   transform: translate(-50%, -50%);
   width: 700px;
   height: 500px;
-  background: radial-gradient(ellipse, rgba(231, 173, 78, 0.13) 0%, rgba(255, 240, 200, 0.18) 40%, transparent 70%);
+  background: radial-gradient(
+    ellipse,
+    rgba(231, 173, 78, 0.13) 0%,
+    rgba(255, 240, 200, 0.18) 40%,
+    transparent 70%
+  );
   border-radius: 50%;
   animation: glow-pulse 5s ease-in-out infinite;
 }
 
 @keyframes glow-pulse {
-  0%, 100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-  50% { opacity: 0.7; transform: translate(-50%, -50%) scale(1.08); }
+  0%,
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: translate(-50%, -50%) scale(1.08);
+  }
 }
 
 .welcome-bg__orb {
@@ -62,7 +76,11 @@
   height: 280px;
   top: -80px;
   right: -60px;
-  background: radial-gradient(circle, rgba(252, 163, 17, 0.18) 0%, transparent 70%);
+  background: radial-gradient(
+    circle,
+    rgba(252, 163, 17, 0.18) 0%,
+    transparent 70%
+  );
   --duration: 7s;
   --delay: 0s;
 }
@@ -72,7 +90,11 @@
   height: 200px;
   bottom: 60px;
   left: -40px;
-  background: radial-gradient(circle, rgba(252, 163, 17, 0.12) 0%, transparent 70%);
+  background: radial-gradient(
+    circle,
+    rgba(252, 163, 17, 0.12) 0%,
+    transparent 70%
+  );
   --duration: 9s;
   --delay: 1.5s;
 }
@@ -82,14 +104,23 @@
   height: 120px;
   top: 55%;
   right: 8%;
-  background: radial-gradient(circle, rgba(252, 163, 17, 0.1) 0%, transparent 70%);
+  background: radial-gradient(
+    circle,
+    rgba(252, 163, 17, 0.1) 0%,
+    transparent 70%
+  );
   --duration: 6s;
   --delay: 3s;
 }
 
 @keyframes float-orb {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-20px); }
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
 }
 
 .welcome-particle {
@@ -101,9 +132,18 @@
 }
 
 @keyframes particle-rise {
-  0% { transform: translateY(0) scale(1); opacity: 0.6; }
-  50% { transform: translateY(-30px) scale(1.2); opacity: 0.3; }
-  100% { transform: translateY(0) scale(1); opacity: 0.6; }
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(-30px) scale(1.2);
+    opacity: 0.3;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 0.6;
+  }
 }
 
 .welcome-content {
@@ -133,8 +173,14 @@
 }
 
 @keyframes logo-appear {
-  from { opacity: 0; transform: scale(0.85) translateY(-8px); }
-  to { opacity: 1; transform: scale(1) translateY(0); }
+  from {
+    opacity: 0;
+    transform: scale(0.85) translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 .welcome-logo__icon {
@@ -145,8 +191,13 @@
 }
 
 @keyframes pulse-icon {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
 }
 
 .welcome-logo__text {
@@ -164,8 +215,14 @@
 }
 
 @keyframes hero-appear {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .welcome-hero__title {
@@ -199,8 +256,14 @@
 }
 
 @keyframes features-appear {
-  from { opacity: 0; transform: translateY(16px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .welcome-feature-chip {
@@ -216,13 +279,15 @@
   font-weight: var(--font-weight-medium);
   box-shadow: 0 1px 8px rgba(0, 0, 0, 0.06);
   backdrop-filter: blur(8px);
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 .welcome-feature-chip:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(252, 163, 17, 0.18);
-  border-color: rgba(252, 163, 17, 0.25);
+  box-shadow: 0 3px 10px var(--color-navy-hover);
+  border-color: var(--color-navy-hover);
 }
 
 .welcome-feature-chip__icon {
@@ -239,8 +304,14 @@
 }
 
 @keyframes actions-appear {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .welcome-btn {
@@ -263,14 +334,16 @@
 .welcome-btn--primary {
   background: var(--color-accent);
   color: #fff;
-  box-shadow: 0 4px 24px rgba(252, 163, 17, 0.45);
   border-radius: var(--radius-pill);
+  border: 1.5px solid rgba(0, 0, 0, 0.1);
+
 }
 
 .welcome-btn--primary:hover {
-  background: var(--color-accent-hover);
+  background: var(--color-white);
   transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(252, 163, 17, 0.55);
+  color: var(--color-accent);
+  border-color: var(--color-accent);
 }
 
 .welcome-btn--primary:active {
@@ -282,13 +355,13 @@
   color: var(--color-white);
   border: 1.5px solid rgba(0, 0, 0, 0.1);
   border-radius: var(--radius-pill);
-  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.06);
 }
 
 .welcome-btn--secondary:hover {
-  background: #ffffff;
+  background: var(--color-white);
   color: var(--color-navy);
   border-color: var(--color-navy);
+  transform: translateY(-2px);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
