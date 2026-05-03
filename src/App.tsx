@@ -4,6 +4,7 @@ import LandingPage from "./pages/auth/LandingPage";
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import WelcomePage from "./pages/auth/WelcomePage";
+import ProfilePage from "./modules/auth/components/profile/ProfilePage";
 
 function App() {
   return (
@@ -13,6 +14,8 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/welcome" element={<WelcomePage />} />
+
+        <Route path="/perfil" element={<ProfilePage />} />
       </Routes>
     </BrowserRouter>
   );
