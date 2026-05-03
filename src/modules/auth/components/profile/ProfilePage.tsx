@@ -101,7 +101,7 @@ const ProfilePage = () => {
     <div className="profile-page">
       <div className="profile-header">
         <div className="profile-header__inner">
-          <button className="profile-back" onClick={() => navigate(-1)}>
+          <button className="profile-back" onClick={() => navigate("/")}>
             <ArrowLeft size={16} />
             Volver
           </button>

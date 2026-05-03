@@ -255,7 +255,7 @@
 
 .profile-btn--primary {
   background: var(--color-accent);
-  color: var(--color-navy);
+  color: var(--color-white);
   box-shadow: 0 4px 14px rgba(252, 163, 17, 0.3);
 }
 
@@ -266,15 +266,16 @@
 }
 
 .profile-btn--danger {
-  background: rgba(239, 68, 68, 0.08);
-  color: #dc2626;
+  background: var(--color-navy);
+  color: var(--color-white);
   border: 1px solid rgba(239, 68, 68, 0.2);
   margin-left: auto;
 }
 
 .profile-btn--danger:hover {
-  background: rgba(239, 68, 68, 0.14);
-  border-color: rgba(239, 68, 68, 0.35);
+  background: var(--color-navy-hover);
+  border-color: var(--color-light-text);
+  box-shadow: 0 6px 20px rgba(30, 41, 59, 0.4);
 }
 
 /* ── Responsive ── */
@@ -325,9 +326,9 @@
 }
 
 .edit-profile-header {
-  background-color: var(--color-navy);
+  background-color: var(--color-accent);
   padding: var(--spacing-6) var(--spacing-8);
-  border-bottom: 3px solid var(--color-accent);
+  border-bottom: 3px solid var(--color-navy-hover);
 }
 
 .edit-profile-header__inner {
@@ -362,7 +363,7 @@
 
 .edit-profile-card__title {
   font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-bold);
+  font-weight: var(--font-weight-black);
   color: var(--color-navy);
   margin: 0 0 var(--spacing-6) 0;
 }
@@ -389,7 +390,7 @@
 .edit-profile-label {
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-bold);
-  color: var(--color-light-text);
+  color: var(--color-navy);
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
@@ -431,11 +432,11 @@
   align-items: center;
   gap: var(--spacing-2);
   padding: var(--spacing-3) var(--spacing-4);
-  background: rgba(34, 197, 94, 0.08);
-  border: 1px solid rgba(34, 197, 94, 0.25);
+  background: var(--color-accent);
+  border: 1px solid var(--color-white);
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
-  color: #16a34a;
+  color: var(--color-navy);
   font-weight: var(--font-weight-medium);
   animation: profile-in 0.2s ease;
 }
@@ -477,7 +478,7 @@
 
 .edit-profile-btn--primary {
   background: var(--color-accent);
-  color: var(--color-navy);
+  color: var(--color-white);
   box-shadow: 0 4px 14px rgba(252, 163, 17, 0.3);
 }
 
@@ -492,14 +493,15 @@
 }
 
 .edit-profile-btn--secondary {
-  background: transparent;
-  color: var(--color-light-text);
-  border: 1.5px solid var(--color-border);
+  background: var(--color-white);
+  color: var(--color-navy);
+  border: 1.5px solid var(--color-navy);
 }
 
 .edit-profile-btn--secondary:hover {
-  border-color: var(--color-navy);
-  color: var(--color-navy);
+  border-color: var(--color-white);
+  background: var(--color-navy);
+  color: var(--color-white);
 }
 
 @media (max-width: 600px) {

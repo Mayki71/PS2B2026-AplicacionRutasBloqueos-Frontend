@@ -3,6 +3,7 @@ import LoginForm from '../../modules/auth/components/form/LoginForm';
 import '../../modules/auth/styles/login.css';
 import { Navbar } from '../../modules/auth/components/landing';
 import '../../modules/auth/styles/auth.css';
+import { MapPin } from 'lucide-react';
 const LoginPage = () => {
   const navigate = useNavigate();
 
@@ -31,13 +32,7 @@ const LoginPage = () => {
         <div className="login-page">
           <div className="login-description">
             <div className="login-description__location">
-              <svg
-                className="login-description__location-icon"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
-              </svg>
+              <MapPin size={16} color="#FCA311" />
               La Paz, Bolivia
             </div>
 

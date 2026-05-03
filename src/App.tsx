@@ -5,6 +5,7 @@ import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import WelcomePage from "./pages/auth/WelcomePage";
 import ProfilePage from "./modules/auth/components/profile/ProfilePage";
+import EditProfilePage from "./modules/auth/components/profile/EditProfilePage";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Route path="/welcome" element={<WelcomePage />} />
 
         <Route path="/perfil" element={<ProfilePage />} />
+        <Route path="/perfil/editar" element={<EditProfilePage />} />
       </Routes>
     </BrowserRouter>
   );
