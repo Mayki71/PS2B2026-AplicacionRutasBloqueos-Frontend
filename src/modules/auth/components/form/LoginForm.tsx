@@ -128,7 +128,6 @@ const LoginForm = ({ onSwitchToRegister, isActive }: LoginFormProps) => {
           )}
         </div>
 
-        {/* Contraseña */}
         <div
           className={`login-form__field ${hasVisibleError("password") ? "login-form__field--error" : ""}`}
         >
