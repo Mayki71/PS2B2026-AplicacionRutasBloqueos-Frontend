@@ -1,4 +1,4 @@
-import { useState, FormEvent, ChangeEvent } from "react";
+import { useState, FormEvent, ChangeEvent, useEffect } from "react";
 import "../../styles/login.css";
 import { authService } from "../../services/authService";
 import { useFormValidation } from "../../hooks/useFormValidation";
@@ -36,7 +36,12 @@ const LoginForm = ({ onSwitchToRegister, isActive }: LoginFormProps) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
     touchField(name, value);
   };
-
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("expired") === "true") {
+      setServerError("Tu sesión expiró, vuelve a iniciar sesión");
+    }
+  }, []);
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>): void => {
     touchField(e.target.name, e.target.value);
   };

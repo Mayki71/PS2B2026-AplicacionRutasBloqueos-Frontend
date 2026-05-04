@@ -1,5 +1,29 @@
 const API_URL = import.meta.env.VITE_API_URL;
 
+function handleUnauthorized() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("usuario");
+  window.location.href = "/login?expired=true";
+}
+
+async function parseResponse(response: Response, isAuthCall = false) {
+  const result = await response.json();
+  if (response.status === 401) {
+    if (!isAuthCall) {
+      handleUnauthorized();
+    }
+    throw new Error(
+      Array.isArray(result.message) ? result.message[0] : result.message,
+    );
+  }
+  if (!response.ok) {
+    throw new Error(
+      Array.isArray(result.message) ? result.message[0] : result.message,
+    );
+  }
+  return result;
+}
+
 export const authService = {
   async register(data: {
     email: string;
@@ -14,12 +38,7 @@ export const authService = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
-    const result = await response.json();
-    if (!response.ok)
-      throw new Error(
-        Array.isArray(result.message) ? result.message[0] : result.message,
-      );
-    return result;
+    return parseResponse(response, true);
   },
 
   async login(data: { email: string; password: string }) {
@@ -28,12 +47,7 @@ export const authService = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
-    const result = await response.json();
-    if (!response.ok)
-      throw new Error(
-        Array.isArray(result.message) ? result.message[0] : result.message,
-      );
-    return result;
+    return parseResponse(response, true);
   },
 
   async getMe() {
@@ -45,12 +59,7 @@ export const authService = {
         Authorization: `Bearer ${token}`,
       },
     });
-    const result = await response.json();
-    if (!response.ok)
-      throw new Error(
-        Array.isArray(result.message) ? result.message[0] : result.message,
-      );
-    return result;
+    return parseResponse(response);
   },
 
   async updateMe(data: {
@@ -68,11 +77,6 @@ export const authService = {
       },
       body: JSON.stringify(data),
     });
-    const result = await response.json();
-    if (!response.ok)
-      throw new Error(
-        Array.isArray(result.message) ? result.message[0] : result.message,
-      );
-    return result;
+    return parseResponse(response);
   },
 };
