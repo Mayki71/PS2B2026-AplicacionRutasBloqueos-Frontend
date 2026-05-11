@@ -53,7 +53,7 @@ const CheckEmailPage = () => {
         {email && <span className="check-email-address">{email}</span>}
         <p className="check-email-hint">
           Haz click en el link del email para activar tu cuenta. Si no lo
-          encontrás, revisa la carpeta de spam.
+          encuentras, revisa la carpeta de spam.
         </p>
 
         {resendSuccess && (

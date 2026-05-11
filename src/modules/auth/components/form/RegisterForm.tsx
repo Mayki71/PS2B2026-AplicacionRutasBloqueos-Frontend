@@ -2,6 +2,7 @@ import { useState, FormEvent, ChangeEvent } from "react";
 import "../../styles/register.css";
 import { authService } from "../../services/authService";
 import { useFormValidation } from "../../hooks/useFormValidation";
+import { useNavigate } from "react-router-dom";
 
 interface RegisterFormData {
   email: string;
@@ -28,6 +29,7 @@ const VALIDATED_FIELDS = [
 ];
 
 const RegisterForm = ({ onSwitchToLogin, isActive }: RegisterFormProps) => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState<RegisterFormData>({
     email: "",
     password: "",
@@ -93,12 +95,10 @@ const RegisterForm = ({ onSwitchToLogin, isActive }: RegisterFormProps) => {
         apellido_materno: formData.apellido_materno,
         telefono: formData.telefono,
       });
-      localStorage.setItem("token", result.token);
-      localStorage.setItem("usuario", JSON.stringify(result.usuario));
       resetValidation();
-      setSuccessMessage("¡Cuenta creada correctamente! Redirigiendo...");
+      navigate("/revisar-correo", { state: { email: formData.email } });
     } catch (err: any) {
-      setServerError(err.message || "Error de conexión, intentá de nuevo");
+      setServerError(err.message || "Error de conexión, intenta de nuevo");
     } finally {
       setLoading(false);
     }

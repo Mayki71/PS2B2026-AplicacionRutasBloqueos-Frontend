@@ -6,6 +6,8 @@ import RegisterPage from "./pages/auth/RegisterPage";
 import WelcomePage from "./pages/auth/WelcomePage";
 import ProfilePage from "./modules/auth/components/profile/ProfilePage";
 import EditProfilePage from "./modules/auth/components/profile/EditProfilePage";
+import EmailVerifiedPage from "./pages/auth/EmailVerifiedPage";
+import CheckEmailPage from "./pages/auth/CheckEmailPage";
 
 function App() {
   return (
@@ -15,6 +17,9 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/welcome" element={<WelcomePage />} />
+
+        <Route path="/revisar-correo" element={<CheckEmailPage />} />
+        <Route path="/verificado" element={<EmailVerifiedPage />} />
 
         <Route path="/perfil" element={<ProfilePage />} />
         <Route path="/perfil/editar" element={<EditProfilePage />} />
