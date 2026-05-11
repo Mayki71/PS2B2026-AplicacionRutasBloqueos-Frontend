@@ -79,4 +79,12 @@ export const authService = {
     });
     return parseResponse(response);
   },
+  async resendVerification(email: string) {
+    const response = await fetch(`${API_URL}/auth/resend-verification`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    return parseResponse(response, true);
+  },
 };
