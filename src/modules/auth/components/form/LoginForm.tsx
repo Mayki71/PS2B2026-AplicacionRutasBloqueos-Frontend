@@ -21,6 +21,9 @@ const LoginForm = ({ onSwitchToRegister, isActive }: LoginFormProps) => {
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [emailNotVerified, setEmailNotVerified] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
   const {
     errors,
     touchField,
@@ -45,7 +48,18 @@ const LoginForm = ({ onSwitchToRegister, isActive }: LoginFormProps) => {
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>): void => {
     touchField(e.target.name, e.target.value);
   };
-
+  const handleResendVerification = async () => {
+    setResending(true);
+    setResendSuccess(false);
+    try {
+      await authService.resendVerification(formData.email);
+      setResendSuccess(true);
+    } catch (err: any) {
+      setServerError(err.message || "Error al reenviar el email");
+    } finally {
+      setResending(false);
+    }
+  };
   const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     setServerError(null);
@@ -67,7 +81,11 @@ const LoginForm = ({ onSwitchToRegister, isActive }: LoginFormProps) => {
       resetValidation();
       setSuccessMessage("¡Sesión iniciada correctamente!");
     } catch (err: any) {
-      setServerError(err.message || "Error de conexión, intentá de nuevo");
+      if (err.message === "EMAIL_NOT_VERIFIED") {
+        setEmailNotVerified(true);
+      } else {
+        setServerError(err.message || "Error de conexión, intentá de nuevo");
+      }
     } finally {
       setLoading(false);
     }
@@ -87,6 +105,25 @@ const LoginForm = ({ onSwitchToRegister, isActive }: LoginFormProps) => {
       </div>
 
       {serverError && <div className="form-server-error">{serverError}</div>}
+      {emailNotVerified && (
+        <div className="form-not-verified" role="alert">
+          <p>Tu email no está verificado. Revisá tu bandeja de entrada.</p>
+          {resendSuccess ? (
+            <span className="form-not-verified__success">
+              ✓ Email reenviado
+            </span>
+          ) : (
+            <button
+              className="form-not-verified__btn"
+              onClick={handleResendVerification}
+              disabled={resending || !formData.email}
+              type="button"
+            >
+              {resending ? "Reenviando..." : "Reenviar email de verificación"}
+            </button>
+          )}
+        </div>
+      )}
       {successMessage && (
         <div className="form-server-success" role="status">
           ✓ {successMessage}
