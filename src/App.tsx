@@ -23,14 +23,19 @@ import { useReportes } from './modules/reports/hooks/useReports';
 import { getTiposBloqueo } from './modules/reports/services/reportsService';
 import { useEffect } from 'react';
 import type { TipoBloqueo } from './modules/reports/reports.types';
+import EditProfilePage from './modules/auth/components/profile/EditProfilePage';
+import ProfilePage from './modules/auth/components/profile/ProfilePage';
+import WelcomePage from './pages/auth/WelcomePage';
+import CheckEmailPage from './pages/auth/CheckEmailPage';
+import EmailVerifiedPage from './pages/auth/EmailVerifiedPage';
 
 type Vista = 'form' | 'lista' | 'detalle' | null;
 
 function MapWithReports() {
-  const [vista, setVista]         = useState<Vista>(null);
+  const [vista, setVista] = useState<Vista>(null);
   const [reporteId, setReporteId] = useState<number | null>(null);
-  const [coordsA, setCoordsA]     = useState<[number, number] | null>(null);
-  const [coordsB, setCoordsB]     = useState<[number, number] | null>(null);
+  const [coordsA, setCoordsA] = useState<[number, number] | null>(null);
+  const [coordsB, setCoordsB] = useState<[number, number] | null>(null);
   const [initCoords, setInitCoords] = useState<{ lat: number; lng: number; direccion?: string } | null>(null);
   const [mapInstance, setMapInstance] = useState<mapboxgl.Map | null>(null);
   const [tiposFiltro, setTiposFiltro] = useState<number[]>([]);
@@ -63,9 +68,9 @@ function MapWithReports() {
     setVista('detalle');
   };
 
-  const isFormOpen  = vista === 'form';
+  const isFormOpen = vista === 'form';
   const isListaOpen = vista === 'lista';
-  const isDetalle   = vista === 'detalle' && reporteId !== null;
+  const isDetalle = vista === 'detalle' && reporteId !== null;
 
   return (
     <div style={{ position: 'fixed', inset: 0, overflow: 'hidden' }}>
@@ -91,6 +96,7 @@ function MapWithReports() {
             reportMode={isFormOpen}
             onMarkPoints={handleMarkPoints}
             onMapReady={handleMapReady}
+            reportes={reportes}
           />
 
           {/* Bloqueos dibujados en el mapa */}
@@ -119,7 +125,7 @@ function MapWithReports() {
               }} onClick={cerrar}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
                   stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
               </button>
               <div>
@@ -129,7 +135,7 @@ function MapWithReports() {
                 <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.75)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
                   {coordsA && coordsB ? <><CheckCircle size={12} /> Tramo marcado en el mapa</>
                     : coordsA ? <><MapPin size={12} /> Marca el punto B en el mapa</>
-                    : <><MapPin size={12} /> Toca el mapa para marcar punto A</>}
+                      : <><MapPin size={12} /> Toca el mapa para marcar punto A</>}
                 </span>
               </div>
             </div>
@@ -137,6 +143,7 @@ function MapWithReports() {
               coordsA={coordsA}
               coordsB={coordsB}
               initialDireccion={initCoords?.direccion}
+              reportes={reportes}
               onClose={cerrar}
               onSuccess={() => { cerrar(); refetch(); }}
             />
@@ -144,22 +151,65 @@ function MapWithReports() {
         )}
       </div>
 
+      {/* ── Estilos de FAB Animados ───────────────────────────── */}
+      <style>{`
+        .fab-container { position: fixed; bottom: 90px; left: 16px; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; z-index: 30; }
+        
+        .fab-btn {
+          display: flex; align-items: center; justify-content: flex-start;
+          height: 56px; border-radius: 28px; background: #FCA311; border: none; cursor: pointer;
+          box-shadow: 0 4px 20px rgba(249,115,22,0.5); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          overflow: hidden; padding: 0; width: 56px;
+        }
+        .fab-btn:hover { width: 175px; background: #e0920f; }
+        
+        .fab-icon-wrapper {
+          width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        
+        .fab-text {
+          color: #fff; font-weight: 800; font-size: 15px; white-space: nowrap;
+          opacity: 0; transform: translateX(-10px); transition: all 0.3s ease;
+        }
+        .fab-btn:hover .fab-text, .fab-btn-secondary:hover .fab-text {
+          opacity: 1; transform: translateX(0); padding-right: 20px;
+        }
+        
+        .fab-btn-secondary {
+          display: flex; align-items: center; justify-content: flex-start;
+          height: 46px; border-radius: 23px; background: #1a1a2e; border: none; cursor: pointer;
+          box-shadow: 0 4px 16px rgba(0,0,0,0.3); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          overflow: hidden; padding: 0; width: 46px;
+        }
+        .fab-btn-secondary:hover { width: 150px; background: #262646; }
+        
+        .fab-btn-secondary .fab-icon-wrapper { width: 46px; height: 46px; }
+        .fab-btn-secondary .fab-text { font-size: 13px; font-weight: 700; }
+      `}</style>
+
       {/* ── FABs ──────────────────────────────────────────────── */}
       {vista === null && (
-        <div style={S.fab}>
-          <button style={S.fabBtn} onClick={() => setVista('form')} title="Crear reporte">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
-              stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
+        <div className="fab-container">
+          <button className="fab-btn" onClick={() => setVista('form')}>
+            <div className="fab-icon-wrapper">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+            </div>
+            <span className="fab-text">Crear reporte</span>
           </button>
-          <button style={S.fabBtnSecondary} onClick={() => setVista('lista')} title="Mis reportes">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-              stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
-              <line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/>
-              <line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
-            </svg>
+
+          <button className="fab-btn-secondary" onClick={() => setVista('lista')}>
+            <div className="fab-icon-wrapper">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" />
+                <line x1="8" y1="18" x2="21" y2="18" /><line x1="3" y1="6" x2="3.01" y2="6" />
+                <line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" />
+              </svg>
+            </div>
+            <span className="fab-text">Mis reportes</span>
           </button>
         </div>
       )}
@@ -181,7 +231,7 @@ function MapWithReports() {
               <button style={S.closeBtn} onClick={cerrar}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
                   stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
               </button>
               <span style={S.modalTitle}>Mis Reportes</span>
@@ -223,6 +273,13 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/perfil" element={<ProfilePage />} />
+        <Route path="/perfil/editar" element={<EditProfilePage />} />
+        <Route path="/welcome" element={<WelcomePage />} />
+        <Route path="/revisar-correo" element={<CheckEmailPage />} />
+        <Route path="/verificado" element={<EmailVerifiedPage />} />
+
+
         <Route path="/map" element={<ProtectedRoute><MapWithReports /></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute adminOnly><AdminDashboard /></ProtectedRoute>} />
         <Route path="/usuarios" element={<ProtectedRoute adminOnly><UsuariosPage /></ProtectedRoute>} />

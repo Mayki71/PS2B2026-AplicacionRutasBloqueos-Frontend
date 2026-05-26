@@ -144,9 +144,10 @@ export default function MapBlockages({ map, reportes, tiposFiltro, onSelectRepor
     lineIdsRef.current = [];
     activeRoutesRef.current = [];
 
+    const activos = reportes.filter(r => r.id_estado !== 2);
     const filtrados = tiposFiltro.length > 0
-      ? reportes.filter(r => tiposFiltro.includes(r.tipos_bloqueo.id_tipo_bloqueo))
-      : reportes;
+      ? activos.filter(r => tiposFiltro.includes(r.tipos_bloqueo.id_tipo_bloqueo))
+      : activos;
 
     filtrados.forEach(reporte => {
       const { ubicaciones, tipos_bloqueo } = reporte;

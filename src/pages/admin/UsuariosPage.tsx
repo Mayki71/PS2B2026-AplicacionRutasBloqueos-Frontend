@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { getUsuarios } from '../../modules/admin/services/adminService';
+import { getUsuarios, activarUsuario, desactivarUsuario, promoverAdmin, quitarAdmin } from '../../modules/admin/services/adminService';
 import { useUI } from '../../components/UIProvider';
 import {
   UserCircle,
@@ -26,6 +26,8 @@ export default function UsuariosPage() {
   const [usuarios, setUsuarios] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [actionId, setActionId] = useState<number | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'activos' | 'baneados'>('all');
   const navigate = useNavigate();
   const { showToast } = useUI();
   const location = useLocation();
@@ -33,7 +35,7 @@ export default function UsuariosPage() {
   const [modal, setModal] = useState<{
     isOpen: boolean;
     userId: number | null;
-    action: 'activar' | 'desactivar' | null;
+    action: 'activar' | 'desactivar' | 'promover' | 'quitar-admin' | null;
   }>({
     isOpen: false,
     userId: null,
@@ -42,18 +44,22 @@ export default function UsuariosPage() {
 
   useEffect(() => {
     cargarUsuarios();
+    const interval = setInterval(cargarUsuarios, 10000);
+    return () => clearInterval(interval);
   }, []);
 
   const cargarUsuarios = async () => {
     try {
       const data = await getUsuarios();
-      setUsuarios(data);
+      if (data) {
+        setUsuarios(prev => JSON.stringify(prev) === JSON.stringify(data) ? prev : data);
+      }
     } catch (error) {
       console.error("Error cargando usuarios:", error);
     }
   };
 
-  const solicitarConfirmacion = (id: number, action: 'activar' | 'desactivar') => {
+  const solicitarConfirmacion = (id: number, action: 'activar' | 'desactivar' | 'promover' | 'quitar-admin') => {
     setModal({ isOpen: true, userId: id, action });
   };
 
@@ -67,15 +73,10 @@ export default function UsuariosPage() {
     setActionId(userId);
 
     try {
-      const endpoint = `${API_URL}/admin/${action}`;
-
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: userId })
-      });
-
-      if (!response.ok) throw new Error('Error en el servidor');
+      if (action === 'activar') await activarUsuario(userId);
+      else if (action === 'desactivar') await desactivarUsuario(userId);
+      else if (action === 'promover') await promoverAdmin(userId);
+      else if (action === 'quitar-admin') await quitarAdmin(userId);
 
       await cargarUsuarios();
     } catch (error) {
@@ -106,10 +107,10 @@ export default function UsuariosPage() {
           Dashboard
         </div>
 
-        {/* Botón Usuarios (ESTE ES EL QUE DEBE ESTAR AZUL EN ESTA PÁGINA) */}
+        {/* Botón Usuarios (ESTE ES EL QUE DEBE ESTAR NARANJA EN ESTA PÁGINA) */}
         <div
           onClick={() => navigate('/usuarios')}
-          className="flex items-center bg-blue-400 text-white px-5 py-3 rounded-2xl mb-3 cursor-pointer font-bold shadow-md shadow-blue-200 hover:bg-blue-500 transition-all active:scale-95"
+          className="flex items-center bg-[#FCA311] text-white px-5 py-3 rounded-2xl mb-3 cursor-pointer font-bold shadow-md hover:bg-[#e5940f] transition-all active:scale-95"
         >
           <Users className="w-5 h-5 mr-3" />
           Usuarios
@@ -149,10 +150,10 @@ export default function UsuariosPage() {
       <div className="flex-1 flex flex-col overflow-y-auto relative pb-20 md:pb-0">
 
         {/* HEADER NARANJA */}
-        <div className="bg-orange-500 text-white px-6 py-10 md:px-10 md:py-16 shadow-xl relative overflow-hidden flex-shrink-0">
+        <div className="bg-[#FCA311] text-white px-6 py-6 md:px-10 md:py-8 shadow-xl relative overflow-hidden flex-shrink-0">
           <div className="relative z-10">
             <h1 className="text-3xl md:text-4xl font-black tracking-tight drop-shadow-sm mb-2">Gestión de Usuarios</h1>
-            <p className="text-orange-100 font-medium opacity-90 flex items-center">
+            <p className="text-white/80 font-medium opacity-90 flex items-center">
               Panel de administración de accesos y roles
             </p>
           </div>
@@ -161,19 +162,19 @@ export default function UsuariosPage() {
         </div>
 
         {/* CARDS OSCURAS */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 p-4 md:p-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 px-4 py-4 md:px-10">
           {[
             { t: "Total Usuarios", v: usuarios.length, icon: <UserCircle className="w-8 h-8 opacity-20" /> },
             { t: "Cuentas Activas", v: usuarios.filter(u => u.es_activo).length, icon: <CheckCircle className="w-8 h-8 opacity-20 text-green-400" /> },
             { t: "Cuentas Inactivas", v: usuarios.filter(u => !u.es_activo).length, icon: <XCircle className="w-8 h-8 opacity-20 text-red-400" /> },
             { t: "Administradores", v: usuarios.filter(u => u.es_administrador).length, icon: <Shield className="w-8 h-8 opacity-20 text-orange-400" /> }
           ].map((c, i) => (
-            <div key={i} className="bg-slate-800 text-white p-7 rounded-[2rem] shadow-lg border border-slate-700/50 hover:bg-slate-700 transition-colors group relative overflow-hidden">
+            <div key={i} className="bg-slate-800 text-white p-4 md:p-5 rounded-2xl shadow-md border border-slate-700/50 hover:bg-slate-700 transition-colors group relative overflow-hidden">
               <div className="absolute top-4 right-4 group-hover:scale-110 transition-transform">
                 {c.icon}
               </div>
-              <p className="text-[10px] font-bold opacity-60 tracking-[0.15em] uppercase mb-3 group-hover:text-blue-300 transition-colors">{c.t}</p>
-              <h2 className="text-4xl md:text-5xl font-black tracking-tighter">{c.v}</h2>
+              <p className="text-[9px] font-bold opacity-60 tracking-[0.1em] uppercase mb-1 group-hover:text-blue-300 transition-colors">{c.t}</p>
+              <h2 className="text-3xl md:text-4xl font-black tracking-tighter">{c.v}</h2>
             </div>
           ))}
         </div>
@@ -181,7 +182,33 @@ export default function UsuariosPage() {
         {/* TABLA DE USUARIOS */}
         <div className="px-4 md:px-10 pb-4 md:pb-10 flex-1 flex flex-col">
           <div className="bg-white rounded-[2.5rem] shadow-xl p-7 border border-gray-200 flex-1">
-            <h3 className="text-2xl font-black text-slate-800 mb-6 tracking-tight px-2">Directorio</h3>
+            <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+              <h3 className="text-2xl font-black text-slate-800 tracking-tight px-2">Directorio</h3>
+              
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Buscar por nombre..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full sm:w-64 pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#FCA311]/50 focus:border-[#FCA311]"
+                  />
+                  <svg className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value as any)}
+                  className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#FCA311]/50 focus:border-[#FCA311]"
+                >
+                  <option value="all">Todos los estados</option>
+                  <option value="activos">Solo Activos</option>
+                  <option value="baneados">Solo Baneados</option>
+                </select>
+              </div>
+            </div>
 
             <div className="overflow-x-auto custom-scrollbar">
               <table className="w-full text-left border-collapse min-w-[800px]">
@@ -194,7 +221,16 @@ export default function UsuariosPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {usuarios.map((u) => (
+                  {usuarios
+                    .filter(u => {
+                      const searchLower = searchTerm.toLowerCase();
+                      const matchesSearch = 
+                        (u.nombre?.toLowerCase() || '').includes(searchLower) || 
+                        (u.apellido_paterno?.toLowerCase() || '').includes(searchLower);
+                      const matchesStatus = filterStatus === 'all' ? true : filterStatus === 'activos' ? u.es_activo : !u.es_activo;
+                      return matchesSearch && matchesStatus;
+                    })
+                    .map((u) => (
                     <tr key={u.id_usuario} className="hover:bg-slate-50 transition-colors duration-200 group">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
@@ -219,16 +255,27 @@ export default function UsuariosPage() {
                           {u.es_administrador ? 'ADMIN' : 'USUARIO'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-right">
+                      <td className="px-6 py-4 text-right flex justify-end gap-2">
                         <button
                           disabled={loading && actionId === u.id_usuario}
                           onClick={() => solicitarConfirmacion(u.id_usuario, u.es_activo ? 'desactivar' : 'activar')}
-                          className={`min-w-[110px] px-4 py-2.5 rounded-xl font-bold text-[11px] uppercase tracking-widest transition-all ${u.es_activo
+                          className={`min-w-[100px] px-3 py-2 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all ${u.es_activo
                             ? 'bg-white border-2 border-red-100 text-red-500 hover:bg-red-50'
                             : 'bg-white border-2 border-green-100 text-green-600 hover:bg-green-50'
                             } disabled:opacity-50`}
                         >
-                          {loading && actionId === u.id_usuario ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : (u.es_activo ? 'Desactivar' : 'Activar')}
+                          {loading && actionId === u.id_usuario ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : (u.es_activo ? 'Banear' : 'Desbanear')}
+                        </button>
+                        
+                        <button
+                          disabled={loading && actionId === u.id_usuario}
+                          onClick={() => solicitarConfirmacion(u.id_usuario, u.es_administrador ? 'quitar-admin' : 'promover')}
+                          className={`min-w-[130px] px-3 py-2 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all ${u.es_administrador
+                            ? 'bg-white border-2 border-slate-200 text-slate-500 hover:bg-slate-50'
+                            : 'bg-[#FCA311] text-white hover:bg-[#e5940f]'
+                            } disabled:opacity-50`}
+                        >
+                          {loading && actionId === u.id_usuario ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : (u.es_administrador ? 'Quitar Admin' : 'Hacer Admin')}
                         </button>
                       </td>
                     </tr>
@@ -269,7 +316,9 @@ export default function UsuariosPage() {
           />
           <div className="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-sm p-8 transform transition-all animate-in zoom-in-95 duration-200 text-center">
 
-            <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 shadow-inner ${modal.action === 'desactivar' ? 'bg-red-100 text-red-500' : 'bg-green-100 text-green-500'
+            <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 shadow-inner ${modal.action === 'desactivar' ? 'bg-red-100 text-red-500' : 
+                modal.action === 'activar' ? 'bg-green-100 text-green-500' :
+                'bg-orange-100 text-orange-500'
               }`}>
               <AlertTriangle className="w-8 h-8" />
             </div>
@@ -284,7 +333,8 @@ export default function UsuariosPage() {
                 onClick={ejecutarAccion}
                 className={`w-full py-3.5 rounded-2xl font-black text-white text-sm uppercase tracking-widest transition-all shadow-md ${modal.action === 'desactivar'
                   ? 'bg-red-500 hover:bg-red-600 shadow-red-200'
-                  : 'bg-green-500 hover:bg-green-600 shadow-green-200'
+                  : modal.action === 'activar' ? 'bg-green-500 hover:bg-green-600 shadow-green-200'
+                  : 'bg-[#FCA311] hover:bg-[#e5940f] shadow-orange-200'
                   }`}
               >
                 Sí, {modal.action}

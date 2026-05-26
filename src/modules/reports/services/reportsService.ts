@@ -9,6 +9,29 @@ import type {
 const API = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 const http = axios.create({ baseURL: API });
 
+// Interceptor para añadir el Token
+http.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token && config.headers) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Interceptor para manejar errores 401 (No autorizado) o 403 (Prohibido/Baneado)
+http.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+      // Si el servidor dice que no estamos autorizados o estamos baneados, limpiamos y sacamos al usuario
+      localStorage.removeItem('token');
+      localStorage.removeItem('usuario');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
 // ─── Reportes ─────────────────────────────────────────────────
 
 /** Lista todos los reportes activos */

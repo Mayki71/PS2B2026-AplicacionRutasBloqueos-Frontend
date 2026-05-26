@@ -2,9 +2,9 @@ import React from "react";
 import img from "../../../../assets/fondo_v2.webp";
 import { useNavigate } from "react-router-dom";
 
-
 const HeroSection = (): React.JSX.Element => {
   const navigate = useNavigate();
+  const isLoggedIn = !!localStorage.getItem("token");
 
   return (
     <>
@@ -18,16 +18,24 @@ const HeroSection = (): React.JSX.Element => {
           <span className="hero__dash hero__dash--6" />
         </div>
         <div className="hero__content">
-          <h1 className="hero__title">
-            Muevete sin sorpresas con PAZLY
-          </h1>
+          <h1 className="hero__title">Muevete sin sorpresas con PAZLY</h1>
           <p className="hero__subtitle">
             Nuestra aplicacion detecta incidentes en tiempo real y calcula rutas
             alternativas para que llegues sin contratiempos
           </p>
           <div className="hero__cta">
-            <button className="btn-primary" onClick={() => navigate('/register')}>Ver mapa</button>
-            <button className="btn-secondary" onClick={() => navigate('/login')}>Reportar un bloqueo</button>
+            <button
+              className="btn-primary"
+              onClick={() => navigate(isLoggedIn ? "/map" : "/register")}
+            >
+              Ver mapa
+            </button>
+            <button
+              className="btn-secondary"
+              onClick={() => navigate(isLoggedIn ? "/reportes" : "/login")}
+            >
+              Reportar un bloqueo
+            </button>
           </div>
         </div>
         <div className="hero__image-placeholder">

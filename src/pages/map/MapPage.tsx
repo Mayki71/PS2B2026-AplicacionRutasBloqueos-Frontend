@@ -14,9 +14,11 @@ interface MapPageProps {
   onMarkPoints?: (a: [number, number] | null, b: [number, number] | null) => void;
   /** Callback con la instancia del mapa una vez que carga */
   onMapReady?: (map: mapboxgl.Map) => void;
+  /** Bloqueos activos para calcular rutas alternativas */
+  reportes?: any[];
 }
 
-const MapPage = ({ onReportHere, reportMode, onMarkPoints, onMapReady }: MapPageProps) => {
+const MapPage = ({ onReportHere, reportMode, onMarkPoints, onMapReady, reportes }: MapPageProps) => {
   const navigate = useNavigate();
   const { showToast } = useUI();
   const {
@@ -24,13 +26,18 @@ const MapPage = ({ onReportHere, reportMode, onMarkPoints, onMapReady }: MapPage
     mapStyle, toggleMapStyle, clearRoute,
     contextMenu, closeContextMenu,
     onSetOriginRef, onSetDestRef,
+    showOriginPreview, showDestPreview,
   } = useMap();
 
   const handleSetOrigin = (name: string, coords: [number, number]) => {
     if (onSetOriginRef.current) onSetOriginRef.current(name, coords);
+    // Mostrar marcador A inmediatamente al elegir origen desde el menú contextual
+    showOriginPreview(coords);
   };
   const handleSetDest = (name: string, coords: [number, number]) => {
     if (onSetDestRef.current) onSetDestRef.current(name, coords);
+    // Mostrar marcador B inmediatamente al elegir destino desde el menú contextual
+    showDestPreview(coords);
   };
   const handleCenter = (coords: [number, number]) => {
     window.dispatchEvent(new CustomEvent('map:flyto', { detail: coords }));
@@ -65,11 +72,15 @@ const MapPage = ({ onReportHere, reportMode, onMarkPoints, onMapReady }: MapPage
         onMarkPoints={onMarkPoints}
       />
       <RoutePanel
-        onSearch={searchRoute}
+        onSearch={(origin, destination, originCoords, destCoords) =>
+          searchRoute(origin, destination, originCoords, destCoords, reportes)
+        }
         onClear={clearRoute}
         routeInfo={routeInfo}
         onSetOriginRef={onSetOriginRef}
         onSetDestRef={onSetDestRef}
+        onOriginPreview={showOriginPreview}
+        onDestPreview={showDestPreview}
       />
       <TopBar onAction={handleAuthAction} isLoggedIn={isLoggedIn} />
       <MapStyleToggle currentStyle={mapStyle} onToggle={toggleMapStyle} />

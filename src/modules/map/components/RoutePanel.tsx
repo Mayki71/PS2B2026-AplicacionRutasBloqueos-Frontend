@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 import { useUI } from '../../../components/UIProvider';
 import { Search, ArrowUpDown, Menu, MapPin, Navigation, X, Clock, Route, ChevronRight, Trash2, Utensils, Hospital, Landmark, GraduationCap, Fuel, Coffee, TreePine, Pill } from 'lucide-react';
 import styles from './css/RoutePanel.module.css';
@@ -25,6 +26,10 @@ interface RoutePanelProps {
   routeInfo?: RouteInfo | null;
   onSetOriginRef?: React.MutableRefObject<((name: string, coords: [number, number]) => void) | null>;
   onSetDestRef?: React.MutableRefObject<((name: string, coords: [number, number]) => void) | null>;
+  /** Callback para colocar marcador A inmediatamente al elegir origen */
+  onOriginPreview?: (coords: [number, number]) => void;
+  /** Callback para colocar marcador B inmediatamente al elegir destino */
+  onDestPreview?: (coords: [number, number]) => void;
 }
 
 const formatDuration = (s: number) => {
@@ -40,7 +45,8 @@ const formatArrival = (s: number) => {
   return d.toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' });
 };
 
-const RoutePanel = ({ onSearch, onClear, routeInfo, onSetOriginRef, onSetDestRef }: RoutePanelProps) => {
+const RoutePanel = ({ onSearch, onClear, routeInfo, onSetOriginRef, onSetDestRef, onOriginPreview, onDestPreview }: RoutePanelProps) => {
+  const navigate = useNavigate();
   const [origin, setOrigin] = useState('');
   const [destination, setDestination] = useState('');
   const [originCoords, setOriginCoords] = useState<[number, number] | undefined>();
@@ -62,6 +68,7 @@ const RoutePanel = ({ onSearch, onClear, routeInfo, onSetOriginRef, onSetDestRef
         setOrigin(name);
         setOriginCoords(coords);
         setOriginSuggestions([]);
+        onOriginPreview?.(coords); // Marcador A inmediato
       };
     }
     if (onSetDestRef) {
@@ -69,6 +76,7 @@ const RoutePanel = ({ onSearch, onClear, routeInfo, onSetOriginRef, onSetDestRef
         setDestination(name);
         setDestCoords(coords);
         setDestSuggestions([]);
+        onDestPreview?.(coords); // Marcador B inmediato
       };
     }
   }, [onSetOriginRef, onSetDestRef]);
@@ -128,6 +136,7 @@ const RoutePanel = ({ onSearch, onClear, routeInfo, onSetOriginRef, onSetDestRef
         setOriginCoords(coords);
         setOrigin(`Mi ubicación (${lat.toFixed(5)}, ${lng.toFixed(5)})`);
         setOriginSuggestions([]);
+        onOriginPreview?.(coords); // Marcador A inmediato para ubicación actual
       },
       () => showToast('No se pudo obtener tu ubicación. Verifica los permisos del navegador.', 'warning'),
       { enableHighAccuracy: true, timeout: 8000 }
@@ -186,6 +195,7 @@ const RoutePanel = ({ onSearch, onClear, routeInfo, onSetOriginRef, onSetDestRef
                     setOriginCoords(s.center);
                     setOriginSuggestions([]);
                     setSelectedPlace(s);
+                    onOriginPreview?.(s.center); // Marcador A al elegir sugerencia
                   }}>
                   <MapPin size={15} className={styles.suggestionIconGray} />
                   <span className={styles.suggestionText}>{s.place_name}</span>
@@ -227,6 +237,7 @@ const RoutePanel = ({ onSearch, onClear, routeInfo, onSetOriginRef, onSetDestRef
                     setDestCoords(s.center);
                     setDestSuggestions([]);
                     setSelectedPlace(s);
+                    onDestPreview?.(s.center); // Marcador B al elegir sugerencia
                   }}>
                   <MapPin size={15} className={styles.suggestionIconGray} />
                   <span className={styles.suggestionText}>{s.place_name}</span>
@@ -441,7 +452,7 @@ const RoutePanel = ({ onSearch, onClear, routeInfo, onSetOriginRef, onSetDestRef
               <button className={styles.drawerMenuItem} onClick={() => setMenuOpen(false)}>
                 <span>Reportar bloqueo</span><ChevronRight size={16} />
               </button>
-              <button className={styles.drawerMenuItem} disabled style={{ opacity: 0.4 }}>
+              <button className={styles.drawerMenuItem} onClick={() => navigate('/perfil')}>
                 <span>Configuración</span><ChevronRight size={16} />
               </button>
             </div>

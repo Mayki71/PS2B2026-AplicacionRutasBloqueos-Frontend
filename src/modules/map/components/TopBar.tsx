@@ -9,8 +9,13 @@ interface TopBarProps {
 const TopBar = ({ onAction, isLoggedIn }: TopBarProps) => {
   return (
     <div className={styles.topBar}>
-      <button className={styles.moreBtn} onClick={onAction} title={isLoggedIn ? "Cerrar Sesión" : "Iniciar Sesión"}>
-        {isLoggedIn ? <LogOut size={20} /> : <LogIn size={20} />}
+      <button className={styles.moreBtn} onClick={onAction}>
+        <div className={styles.iconWrapper}>
+          {isLoggedIn ? <LogOut size={20} /> : <LogIn size={20} />}
+        </div>
+        <span className={styles.btnText}>
+          {isLoggedIn ? "Cerrar Sesión" : "Iniciar Sesión"}
+        </span>
       </button>
     </div>
   );

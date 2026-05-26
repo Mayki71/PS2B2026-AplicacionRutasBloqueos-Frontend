@@ -31,32 +31,49 @@ interface Props {
 }
 
 export default function ReportDetail({ id_reporte, onBack, onDeleted }: Props) {
-  const { reporte, refetch, loading, error } = useReporteDetalle(id_reporte);
-  const { votar, loadingVoto } = useVotar(reporte, refetch);
+  const { reporte, setReporte, refetch, loading, error, wasDeleted } = useReporteDetalle(id_reporte);
+  const { votar, loadingVoto } = useVotar(reporte, refetch, setReporte);
   const { comentarios, loading: loadingCom, enviando, enviarComentario } = useComentarios(id_reporte);
   const [nuevoComentario, setNuevoComentario] = useState('');
   const { showToast, showConfirm } = useUI();
   const [deleting, setDeleting] = useState(false);
+  const [countdown, setCountdown] = useState(4);
 
   // Mapa de detalle
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const mapRef          = useRef<mapboxgl.Map | null>(null);
+  const mapRef = useRef<mapboxgl.Map | null>(null);
 
   // Usuario logueado
   const usuarioStr = localStorage.getItem('usuario');
   const usuarioActual = usuarioStr ? JSON.parse(usuarioStr) : null;
   const esDueño = reporte && usuarioActual ? reporte.id_usuario === usuarioActual.id : false;
 
-  // Inicializar mini-mapa de detalle
+  // Mapa de detalle — guardamos las coords del bloqueo para comparar
+  const blockageCoordsRef = useRef<string>('');
+
+  // Auto-redirect cuando el reporte es eliminado por su dueño
+  useEffect(() => {
+    if (!wasDeleted) return;
+    setCountdown(4);
+    const timer = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) { clearInterval(timer); onBack(); return 0; }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [wasDeleted, onBack]);
+
+  // Efecto 1: Inicializar mapa UNA SOLA VEZ cuando el reporte carga por primera vez
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current || !reporte) return;
 
-    mapboxgl.accessToken = MAPBOX_TOKEN;
     const { latitud, longitud, latitud_fin, longitud_fin } = reporte.ubicaciones;
 
+    mapboxgl.accessToken = MAPBOX_TOKEN;
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
-      style: 'mapbox://styles/mapbox/satellite-streets-v12',
+      style: 'mapbox://styles/mapbox/streets-v12',
       center: [longitud, latitud],
       zoom: 14,
       interactive: true,
@@ -116,9 +133,13 @@ export default function ReportDetail({ id_reporte, onBack, onDeleted }: Props) {
       }
     });
 
+    // Guardar coords actuales para no reinicializar si solo cambian votos/comentarios
+    blockageCoordsRef.current = `${longitud},${latitud},${longitud_fin},${latitud_fin}`;
     mapRef.current = map;
-    return () => { map.remove(); mapRef.current = null; };
-  }, [reporte]);
+    return () => { map.remove(); mapRef.current = null; blockageCoordsRef.current = ''; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reporte?.id_reporte]); // Solo cuando cambia el ID del reporte (nueva vista)
+
 
   const handleEnviar = async () => {
     if (!nuevoComentario.trim()) return;
@@ -156,6 +177,50 @@ export default function ReportDetail({ id_reporte, onBack, onDeleted }: Props) {
     </div>
   );
 
+  // Pantalla cuando el reporte fue eliminado (por su dueño o detectado en polling)
+  if (wasDeleted) return (
+    <div style={{ ...S.page, alignItems: 'center', justifyContent: 'center', gap: 0 }}>
+      <div style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px',
+        background: 'rgba(0,0,0,0.2)', borderRadius: '20px', padding: '40px 32px',
+        maxWidth: '360px', textAlign: 'center', margin: '0 16px',
+      }}>
+        {/* Ícono de papelera animado */}
+        <div style={{
+          width: '72px', height: '72px', borderRadius: '50%',
+          background: 'rgba(255,255,255,0.15)', display: 'flex',
+          alignItems: 'center', justifyContent: 'center',
+        }}>
+          <Trash2 size={36} color="#fff" />
+        </div>
+        <h2 style={{ color: '#fff', fontSize: '22px', fontWeight: 800, margin: 0 }}>
+          Reporte eliminado
+        </h2>
+        <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: '15px', lineHeight: 1.5, margin: 0 }}>
+          Este reporte ha sido eliminado por su autor y ya no está disponible.
+        </p>
+        {/* Barra de progreso del countdown */}
+        <div style={{ width: '100%', background: 'rgba(255,255,255,0.2)', borderRadius: '100px', height: '6px', overflow: 'hidden' }}>
+          <div style={{
+            height: '100%', borderRadius: '100px', background: '#fff',
+            width: `${(countdown / 4) * 100}%`,
+            transition: 'width 0.9s linear',
+          }} />
+        </div>
+        <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px', margin: 0 }}>
+          Volviendo al mapa en <strong style={{ color: '#fff' }}>{countdown}</strong> segundo{countdown !== 1 ? 's' : ''}...
+        </p>
+        <button onClick={onBack} style={{
+          background: '#fff', color: '#FCA311', border: 'none',
+          borderRadius: '10px', padding: '10px 24px',
+          fontSize: '14px', fontWeight: 700, cursor: 'pointer',
+        }}>
+          Volver ahora
+        </button>
+      </div>
+    </div>
+  );
+
   if (error || !reporte) return (
     <div style={S.page}>
       <TopBar title="Detalle Reporte" onBack={onBack} />
@@ -167,7 +232,7 @@ export default function ReportDetail({ id_reporte, onBack, onDeleted }: Props) {
   );
 
   const titulo = buildTituloReporte(reporte);
-  const hace   = tiempoRelativo(reporte.fecha_creacion);
+  const hace = tiempoRelativo(reporte.fecha_creacion);
 
   return (
     <>
@@ -195,116 +260,116 @@ export default function ReportDetail({ id_reporte, onBack, onDeleted }: Props) {
         {/* ── FORMULARIO (Derecha en PC, Abajo en Móvil) ─────────────────────── */}
         <div className="rd-info">
 
-        {/* Imagen del bloqueo */}
-        {reporte.imagen_principal_url && (
-          <div style={S.imageWrapper}>
-            <img src={reporte.imagen_principal_url} alt="Imagen del bloqueo" style={S.image} />
+          {/* Imagen del bloqueo */}
+          {reporte.imagen_principal_url && (
+            <div style={S.imageWrapper}>
+              <img src={reporte.imagen_principal_url} alt="Imagen del bloqueo" style={S.image} />
+            </div>
+          )}
+
+          {/* Encabezado del panel */}
+          <div style={S.infoHeader}>
+            <span style={S.tipoBadge}>
+              {reporte.tipos_bloqueo.nombre}
+            </span>
+            {esDueño && (
+              <button style={S.deleteBtn} onClick={handleEliminar} disabled={deleting}>
+                {deleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                Eliminar
+              </button>
+            )}
           </div>
-        )}
 
-        {/* Encabezado del panel */}
-        <div style={S.infoHeader}>
-          <span style={S.tipoBadge}>
-            {reporte.tipos_bloqueo.nombre}
-          </span>
-          {esDueño && (
-            <button style={S.deleteBtn} onClick={handleEliminar} disabled={deleting}>
-              {deleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />} 
-              Eliminar
-            </button>
-          )}
-        </div>
+          <div style={S.scrollable}>
+            {/* Título y meta */}
+            <h1 style={S.title}>{titulo}</h1>
+            <p style={S.meta}>{hace} · {reporte.votos.total} votos</p>
+            <p style={S.desc}>{reporte.descripcion}</p>
 
-        <div style={S.scrollable}>
-          {/* Título y meta */}
-          <h1 style={S.title}>{titulo}</h1>
-          <p style={S.meta}>{hace} · {reporte.votos.total} votos</p>
-          <p style={S.desc}>{reporte.descripcion}</p>
+            {/* Ubicación */}
+            {reporte.ubicaciones.direccion && (
+              <p style={{ ...S.ubicacion, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <MapPin size={16} color="#9ca3af" />
+                {reporte.ubicaciones.direccion}
+              </p>
+            )}
 
-          {/* Ubicación */}
-          {reporte.ubicaciones.direccion && (
-            <p style={{ ...S.ubicacion, display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <MapPin size={16} color="#9ca3af" /> 
-              {reporte.ubicaciones.direccion}
-            </p>
-          )}
+            <div style={S.divider} />
 
-          <div style={S.divider} />
-
-          {/* Votación — solo si NO eres el dueño */}
-          <p style={S.voteLabel}>¿El bloqueo sigue activo?</p>
-          {esDueño ? (
-            <div style={S.ownerNote}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
-                <Lock size={14} /> Reportado por ti — no puedes votar en tu propio reporte
-              </span>
-              <div style={S.voteCountsRow}>
-                <span style={{ ...S.voteCount, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <CheckCircle size={14} color="#10b981" /> Activo: <strong>{reporte.votos.activo}</strong>
+            {/* Votación — solo si NO eres el dueño */}
+            <p style={S.voteLabel}>¿El bloqueo sigue activo?</p>
+            {esDueño ? (
+              <div style={S.ownerNote}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
+                  <Lock size={14} /> Reportado por ti — no puedes votar en tu propio reporte
                 </span>
-                <span style={{ ...S.voteCount, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <XCircle size={14} color="#ef4444" /> Inactivo: <strong>{reporte.votos.inactivo}</strong>
-                </span>
-              </div>
-            </div>
-          ) : (
-            <div style={S.voteRow}>
-              <button style={{ ...S.btnActivo, display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }} onClick={() => votar(1)} disabled={loadingVoto}>
-                <CheckCircle size={16} /> Activo ({reporte.votos.activo})
-              </button>
-              <button style={{ ...S.btnInactivo, display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }} onClick={() => votar(2)} disabled={loadingVoto}>
-                <XCircle size={16} /> Inactivo ({reporte.votos.inactivo})
-              </button>
-            </div>
-          )}
-
-          <div style={S.divider} />
-
-          {/* Comentarios */}
-          <p style={{ ...S.commentsTitle, display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <MessageSquare size={16} /> Comentarios
-          </p>
-
-          {loadingCom ? (
-            <p style={S.emptyMsg}>Cargando comentarios...</p>
-          ) : comentarios.length === 0 ? (
-            <p style={S.emptyMsg}>Sé el primero en comentar</p>
-          ) : (
-            comentarios.map((c) => {
-              const usuario = c.usuarios
-                ? `${c.usuarios.nombre} ${c.usuarios.apellido_paterno}`
-                : `Usuario`;
-              return (
-                <div key={c.id_comentario} style={S.commentCard}>
-                  <div style={S.commentHeader}>
-                    <span style={S.commentUser}>{usuario}</span>
-                    <span style={S.commentTime}>{tiempoRelativo(c.fecha_comentario)}</span>
-                  </div>
-                  <p style={S.commentText}>{c.comentario}</p>
+                <div style={S.voteCountsRow}>
+                  <span style={{ ...S.voteCount, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <CheckCircle size={14} color="#10b981" /> Activo: <strong>{reporte.votos.activo}</strong>
+                  </span>
+                  <span style={{ ...S.voteCount, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <XCircle size={14} color="#ef4444" /> Inactivo: <strong>{reporte.votos.inactivo}</strong>
+                  </span>
                 </div>
-              );
-            })
-          )}
+              </div>
+            ) : (
+              <div style={S.voteRow}>
+                <button style={{ ...S.btnActivo, display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }} onClick={() => votar(1)} disabled={loadingVoto}>
+                  <CheckCircle size={16} /> Activo ({reporte.votos.activo})
+                </button>
+                <button style={{ ...S.btnInactivo, display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }} onClick={() => votar(2)} disabled={loadingVoto}>
+                  <XCircle size={16} /> Inactivo ({reporte.votos.inactivo})
+                </button>
+              </div>
+            )}
 
-          <div style={{ height: '80px' }} />
-        </div>
+            <div style={S.divider} />
 
-        {/* Input de comentario fijo al fondo */}
-        <div style={S.inputBar}>
-          <input
-            style={S.commentInput}
-            placeholder="Agregar comentario..."
-            value={nuevoComentario}
-            onChange={e => setNuevoComentario(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleEnviar()}
-            disabled={enviando}
-          />
-          <button style={S.sendBtn} onClick={handleEnviar} disabled={enviando}>
-            <SendIcon />
-          </button>
+            {/* Comentarios */}
+            <p style={{ ...S.commentsTitle, display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <MessageSquare size={16} /> Comentarios
+            </p>
+
+            {loadingCom ? (
+              <p style={S.emptyMsg}>Cargando comentarios...</p>
+            ) : comentarios.length === 0 ? (
+              <p style={S.emptyMsg}>Sé el primero en comentar</p>
+            ) : (
+              comentarios.map((c) => {
+                const usuario = c.usuarios
+                  ? `${c.usuarios.nombre} ${c.usuarios.apellido_paterno}`
+                  : `Usuario`;
+                return (
+                  <div key={c.id_comentario} style={S.commentCard}>
+                    <div style={S.commentHeader}>
+                      <span style={S.commentUser}>{usuario}</span>
+                      <span style={S.commentTime}>{tiempoRelativo(c.fecha_comentario)}</span>
+                    </div>
+                    <p style={S.commentText}>{c.comentario}</p>
+                  </div>
+                );
+              })
+            )}
+
+            <div style={{ height: '80px' }} />
+          </div>
+
+          {/* Input de comentario fijo al fondo */}
+          <div style={S.inputBar}>
+            <input
+              style={S.commentInput}
+              placeholder="Agregar comentario..."
+              value={nuevoComentario}
+              onChange={e => setNuevoComentario(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleEnviar()}
+              disabled={enviando}
+            />
+            <button style={S.sendBtn} onClick={handleEnviar} disabled={enviando}>
+              <SendIcon />
+            </button>
+          </div>
         </div>
       </div>
-    </div>
     </>
   );
 }
@@ -325,7 +390,7 @@ function ArrowLeft() {
   return (
     <svg width="26" height="26" viewBox="0 0 24 24" fill="none"
       stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M19 12H5M12 19l-7-7 7-7"/>
+      <path d="M19 12H5M12 19l-7-7 7-7" />
     </svg>
   );
 }
@@ -333,8 +398,8 @@ function SendIcon() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
       stroke="#FCA311" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="22" y1="2" x2="11" y2="13"/>
-      <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+      <line x1="22" y1="2" x2="11" y2="13" />
+      <polygon points="22 2 15 22 11 13 2 9 22 2" />
     </svg>
   );
 }

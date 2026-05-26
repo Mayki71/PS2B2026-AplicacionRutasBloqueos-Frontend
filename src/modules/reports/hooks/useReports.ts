@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import type { Reporte, ReporteResumen, Comentario, CreateReportePayload } from '../reports.types';
 import * as svc from '../services/reportsService';
 
@@ -8,12 +8,17 @@ export const useReportes = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState<string | null>(null);
 
-  const fetchReportes = useCallback(async () => {
-    setLoading(true);
+  const fetchReportes = useCallback(async (isSilent = false) => {
+    if (!isSilent) setLoading(true);
     setError(null);
     try {
       const data = await svc.getReportes();
-      setReportes(data);
+      
+      // Solo actualizar si la data cambió para evitar re-renders innecesarios
+      setReportes(prev => {
+        if (JSON.stringify(prev) === JSON.stringify(data)) return prev;
+        return data;
+      });
     } catch {
       setError('No se pudieron cargar los reportes.');
     } finally {
@@ -21,7 +26,16 @@ export const useReportes = () => {
     }
   }, []);
 
-  useEffect(() => { fetchReportes(); }, [fetchReportes]);
+  useEffect(() => { 
+    fetchReportes(); 
+
+    // Polling silencioso cada 5 segundos (más rápido para que parezca inmediato)
+    const interval = setInterval(() => {
+      fetchReportes(true);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [fetchReportes]);
 
   return { reportes, loading, error, refetch: fetchReportes };
 };
@@ -31,24 +45,46 @@ export const useReporteDetalle = (id: number) => {
   const [reporte, setReporte] = useState<Reporte | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState<string | null>(null);
+  const [wasDeleted, setWasDeleted] = useState(false);
 
-  const fetchReporte = useCallback(async () => {
-    setLoading(true);
+  const fetchReporte = useCallback(async (isSilent = false) => {
+    // loading=true solo en la carga inicial (primera vez), nunca en refetches
+    if (!isSilent) setLoading(true);
     setError(null);
     try {
       const data = await svc.getReporteById(id);
-      setReporte(data);
-    } catch {
-      setError('Reporte no encontrado.');
+      setReporte(prev => {
+        if (JSON.stringify(prev) === JSON.stringify(data)) return prev;
+        return data;
+      });
+    } catch (err: any) {
+      const status = err?.response?.status;
+      if (status === 404 || status === 400) {
+        // El reporte fue eliminado (ya sea silencioso o no)
+        setWasDeleted(true);
+      } else if (!isSilent) {
+        setError('Reporte no encontrado.');
+      }
+      // Solo desactivar loading en carga inicial
+      if (!isSilent) setLoading(false);
     } finally {
-      setLoading(false);
+      if (!isSilent) setLoading(false);
     }
   }, [id]);
 
-  useEffect(() => { fetchReporte(); }, [fetchReporte]);
+  useEffect(() => { 
+    fetchReporte(); 
+    
+    const interval = setInterval(() => {
+      fetchReporte(true);
+    }, 5000);
 
-  return { reporte, setReporte, loading, error, refetch: fetchReporte };
+    return () => clearInterval(interval);
+  }, [fetchReporte]);
+
+  return { reporte, setReporte, loading, error, wasDeleted, refetch: fetchReporte };
 };
+
 
 // ─── Hook: mis reportes ───────────────────────────────────────
 export const useMisReportes = () => {
@@ -91,17 +127,24 @@ export const useCreateReporte = () => {
 };
 
 // ─── Hook: votos ─────────────────────────────────────────────
-export const useVotar = (reporte: Reporte | null, onSuccess: () => void) => {
+export const useVotar = (
+  reporte: Reporte | null,
+  onSuccess: (isSilent?: boolean) => void,
+  setReporte?: React.Dispatch<React.SetStateAction<Reporte | null>>
+) => {
   const [loadingVoto, setLoadingVoto] = useState(false);
 
   const votar = async (tipo: 1 | 2) => {
     if (!reporte) return;
     setLoadingVoto(true);
+
     try {
       await svc.votarReporte(reporte.id_reporte, tipo);
-      onSuccess(); // recarga el reporte para actualizar conteo
+      // Refetch silencioso para obtener los contadores reales y exactos del servidor
+      onSuccess(true);
     } catch {
-      // silencioso, el usuario ya votó o hubo un error
+      // Si falló, podemos notificar (opcional), pero el estado se mantendrá igual
+      onSuccess(true);
     } finally {
       setLoadingVoto(false);
     }
@@ -116,17 +159,28 @@ export const useComentarios = (id_reporte: number) => {
   const [loading, setLoading]         = useState(true);
   const [enviando, setEnviando]       = useState(false);
 
-  const fetchComentarios = useCallback(async () => {
-    setLoading(true);
+  const fetchComentarios = useCallback(async (isSilent = false) => {
+    if (!isSilent) setLoading(true);
     try {
       const data = await svc.getComentarios(id_reporte);
-      setComentarios(data);
+      setComentarios(prev => {
+        if (JSON.stringify(prev) === JSON.stringify(data)) return prev;
+        return data;
+      });
     } finally {
       setLoading(false);
     }
   }, [id_reporte]);
 
-  useEffect(() => { fetchComentarios(); }, [fetchComentarios]);
+  useEffect(() => { 
+    fetchComentarios(); 
+    
+    const interval = setInterval(() => {
+      fetchComentarios(true);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [fetchComentarios]);
 
   const enviarComentario = async (texto: string) => {
     if (!texto.trim()) return;

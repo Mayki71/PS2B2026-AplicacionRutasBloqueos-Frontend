@@ -31,8 +31,8 @@ interface MapViewProps {
 }
 
 const STYLES = {
+  standard: 'mapbox://styles/mapbox/streets-v12',
   satellite: 'mapbox://styles/mapbox/satellite-streets-v12',
-  standard:  'mapbox://styles/mapbox/streets-v12',
 };
 
 /** Crea un elemento DOM para los marcadores A/B del modo reporte */
@@ -53,13 +53,13 @@ function createReportMarkerEl(label: 'A' | 'B', color: string) {
 
 const MapView = ({ onMapLoad, onMapReady, mapStyle = 'satellite', reportMode, onMarkPoints }: MapViewProps) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const mapRef          = useRef<mapboxgl.Map | null>(null);
+  const mapRef = useRef<mapboxgl.Map | null>(null);
 
   // Refs para el estado del modo reporte (no causan re-renders)
-  const markerA      = useRef<mapboxgl.Marker | null>(null);
-  const markerB      = useRef<mapboxgl.Marker | null>(null);
-  const clickCount   = useRef(0);
-  const onMarkRef    = useRef(onMarkPoints);
+  const markerA = useRef<mapboxgl.Marker | null>(null);
+  const markerB = useRef<mapboxgl.Marker | null>(null);
+  const clickCount = useRef(0);
+  const onMarkRef = useRef(onMarkPoints);
   useEffect(() => { onMarkRef.current = onMarkPoints; }, [onMarkPoints]);
 
   // ── Inicialización del mapa (solo una vez) ──────────────────────────
@@ -111,7 +111,7 @@ const MapView = ({ onMapLoad, onMapReady, mapStyle = 'satellite', reportMode, on
                 .addTo(map);
             } catch { /* mapa destruido */ }
           },
-          () => {},
+          () => { },
           { enableHighAccuracy: true, timeout: 8000 }
         );
       }

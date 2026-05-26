@@ -1,6 +1,6 @@
 @import "../styles/variables.css";
 
-
+@import './form-validation.css';
 .register-page {
   display: grid;
   grid-template-columns: 1fr 1fr;

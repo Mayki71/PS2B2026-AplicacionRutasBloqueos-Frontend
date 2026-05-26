@@ -12,7 +12,7 @@ const RegisterPage = () => {
       <Navbar />
       <div className="auth-layout">
 
-        {/* Switcher centrado arriba */}
+
         <div className="auth-switcher-top">
           <button
             className="auth-switcher-top__tab auth-switcher-top__tab--active"
