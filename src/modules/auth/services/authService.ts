@@ -8,10 +8,10 @@ function handleUnauthorized() {
 
 async function parseResponse(response: Response, isAuthCall = false) {
   // 1. Leemos primero como texto para que no explote
-  const text = await response.text(); 
-  
+  const text = await response.text();
+
   // 2. Intentamos transformarlo a JSON si hay contenido
-  const result = text ? JSON.parse(text) : {}; 
+  const result = text ? JSON.parse(text) : {};
 
   if (response.status === 401) {
     if (!isAuthCall) {
@@ -43,14 +43,16 @@ export const authService = {
   },
 
   async login(data: { email: string; password: string }) {
-    const response = await fetch(`${API_URL}/auth/login/`, {
+  
+    console.log("Disparando POST a la URL:", `${API_URL}/auth/login`);
+
+    const response = await fetch(`${API_URL}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
     return parseResponse(response, true);
   },
-
   async getMe() {
     const token = localStorage.getItem("token") ?? "";
     const response = await fetch(`${API_URL}/auth/me`, {
