@@ -7,19 +7,20 @@ function handleUnauthorized() {
 }
 
 async function parseResponse(response: Response, isAuthCall = false) {
-  const result = await response.json();
+  // 1. Leemos primero como texto para que no explote
+  const text = await response.text(); 
+  
+  // 2. Intentamos transformarlo a JSON si hay contenido
+  const result = text ? JSON.parse(text) : {}; 
+
   if (response.status === 401) {
     if (!isAuthCall) {
       handleUnauthorized();
     }
-    throw new Error(
-      Array.isArray(result.message) ? result.message[0] : result.message,
-    );
+    throw new Error(result.message || "No autorizado");
   }
   if (!response.ok) {
-    throw new Error(
-      Array.isArray(result.message) ? result.message[0] : result.message,
-    );
+    throw new Error(result.message || `Error del servidor: ${response.status}`);
   }
   return result;
 }
