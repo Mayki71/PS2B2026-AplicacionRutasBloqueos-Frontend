@@ -34,7 +34,7 @@ export const authService = {
     apellido_materno: string;
     telefono: string;
   }) {
-    const response = await fetch(`${API_URL}/auth/register/`, {
+    const response = await fetch(`${API_URL}/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
@@ -44,7 +44,7 @@ export const authService = {
 
   async login(data: { email: string; password: string }) {
   
-    console.log("Disparando POST a la URL:", `${API_URL}/auth/login`);
+    // console.log("Disparando POST a la URL:", `${API_URL}/auth/login`);
 
     const response = await fetch(`${API_URL}/auth/login`, {
       method: "POST",
