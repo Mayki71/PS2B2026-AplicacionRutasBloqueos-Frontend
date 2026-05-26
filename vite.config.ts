@@ -9,7 +9,7 @@ export default defineConfig({
   ],
   server: {
     host: true,
-    https: true,
+    https: {},
     proxy: {
       // Redirige las peticiones /api al backend para evitar errores de "Mixed Content"
       '/api': {

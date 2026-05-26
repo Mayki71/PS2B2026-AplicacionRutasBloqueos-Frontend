@@ -5,7 +5,7 @@ import { useReporteDetalle, useVotar, useComentarios } from '../hooks/useReports
 import { deleteReporte } from '../services/reportsService';
 import { buildTituloReporte, tiempoRelativo } from '../reports.types';
 import { useUI } from '../../../components/UIProvider';
-import { Trash2, MapPin, CheckCircle, XCircle, Lock, MessageSquare, Loader2 } from 'lucide-react';
+import { Trash2, MapPin, CheckCircle, XCircle, Lock, MessageSquare, Loader2, ArrowLeft} from 'lucide-react';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || import.meta.env.MAPBOX_TOKEN;
 
@@ -379,21 +379,21 @@ function TopBar({ title, onBack }: { title: string; onBack: () => void }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '14px 16px', background: '#FCA311' }}>
       <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#fff' }} onClick={onBack}>
-        <ArrowLeft />
+        <ArrowLeft  />
       </button>
       <span style={{ fontSize: '17px', fontWeight: 700, color: '#fff' }}>{title}</span>
     </div>
   );
 }
 
-function ArrowLeft() {
-  return (
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none"
-      stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M19 12H5M12 19l-7-7 7-7" />
-    </svg>
-  );
-}
+// function ArrowLeft() {
+//   return (
+//     <svg width="26" height="26" viewBox="0 0 24 24" fill="none"
+//       stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+//       <path d="M19 12H5M12 19l-7-7 7-7" />
+//     </svg>
+//   );
+// }
 function SendIcon() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none"

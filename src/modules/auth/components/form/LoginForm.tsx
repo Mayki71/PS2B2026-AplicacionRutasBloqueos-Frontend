@@ -1,4 +1,5 @@
-import { useState, useEffect, type FormEvent, type ChangeEvent } from "react";
+import { useState, useEffect, } from "react";
+import type { FormEvent, ChangeEvent } from "react";
 import "../../styles/login.css";
 import { authService } from "../../services/authService";
 import { useNavigate } from "react-router-dom";

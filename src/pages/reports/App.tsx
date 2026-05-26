@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import ReportForm from './modules/reports/components/ReportForm';
-import ReportList from './modules/reports/components/ReportList';
-import ReportDetail from './modules/reports/components/ReportDetail';
+import ReportForm from '../../modules/reports/components/ReportForm';
+import ReportList from '../../modules/reports/components/ReportList';
+import ReportDetail from '../../modules/reports/components/ReportDetail';
 
 function App() {
   const [vista, setVista] = useState<'form' | 'lista' | 'detalle' | null>(null);

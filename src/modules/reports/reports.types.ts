@@ -51,6 +51,7 @@ export interface VotosReporte {
 export interface Reporte {
   id_reporte: number;
   id_usuario: number;
+  id_estado: number;
   descripcion: string;
   hora_inicio: string;
   fecha_creacion: string;
