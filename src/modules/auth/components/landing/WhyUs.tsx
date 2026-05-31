@@ -1,8 +1,10 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useInstallPWA } from "../../hooks/useInstallPWA";
 
 const WhyUs = (): React.JSX.Element => {
   const navigate = useNavigate();
+  const { isInstallable, installApp } = useInstallPWA();
   return (
     <>
       <section className="why-pazly">
@@ -25,9 +27,20 @@ const WhyUs = (): React.JSX.Element => {
             Unete a la comunidad para llegar antes.
           </p>
           <div className="cta-section__actions">
-            <button className="btn-cta-primary" onClick={() => navigate('/register')}>Registrate</button>
+            <button
+              className="btn-cta-primary"
+              onClick={() => navigate("/register")}
+            >
+              Registrate
+            </button>
             <span className="cta-section__or">o</span>
-            <button className="btn-cta-secondary">Descarga nuestra app</button>
+            <button
+              className="btn-cta-secondary"
+              onClick={installApp}
+              disabled={!isInstallable}
+            >
+              Descarga nuestra app
+            </button>
           </div>
         </div>
       </section>

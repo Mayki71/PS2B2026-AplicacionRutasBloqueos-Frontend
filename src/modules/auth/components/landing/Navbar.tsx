@@ -1,12 +1,14 @@
 import { MapPin, Menu, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
+import { useInstallPWA } from "../../hooks/useInstallPWA";
 
 const Navbar = (): React.JSX.Element => {
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [initials, setInitials] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
+  const { isInstallable, installApp } = useInstallPWA();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -45,7 +47,7 @@ const Navbar = (): React.JSX.Element => {
         <div className="navbar__logo-icon">
           <MapPin size={20} color="#FCA311" />
         </div>
-        Pazly 
+        Pazly
       </div>
 
       <ul className="navbar__nav">
@@ -71,7 +73,13 @@ const Navbar = (): React.JSX.Element => {
             <button className="btn-ingresar" onClick={() => goTo("/login")}>
               Ingresar
             </button>
-            <button className="btn-descargar">Descargar App</button>
+            <button
+              className="btn-descargar"
+              onClick={installApp}
+              disabled={!isInstallable}
+            >
+              Descargar App
+            </button>
           </>
         )}
       </div>
@@ -88,7 +96,6 @@ const Navbar = (): React.JSX.Element => {
           <Menu size={22} color="#fff" />
         )}
       </button>
-
 
       <div
         className={`navbar__mobile-menu ${menuOpen ? "navbar__mobile-menu--open" : ""}`}
@@ -121,7 +128,11 @@ const Navbar = (): React.JSX.Element => {
               >
                 Ingresar
               </button>
-              <button className="navbar__mobile-btn navbar__mobile-btn--secondary">
+              <button
+                className="navbar__mobile-btn navbar__mobile-btn--secondary"
+                onClick={installApp}
+                disabled={!isInstallable}
+              >
                 Descargar App
               </button>
             </>
