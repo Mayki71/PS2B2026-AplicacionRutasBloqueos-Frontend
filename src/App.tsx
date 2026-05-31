@@ -28,6 +28,7 @@ import ProfilePage from './modules/auth/components/profile/ProfilePage';
 import WelcomePage from './pages/auth/WelcomePage';
 import CheckEmailPage from './pages/auth/CheckEmailPage';
 import EmailVerifiedPage from './pages/auth/EmailVerifiedPage';
+import OnboardingGuard from "./modules/auth/components/OnboardingGuard";
 
 type Vista = 'form' | 'lista' | 'detalle' | null;
 
@@ -270,7 +271,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<LandingPage />} />
+        <Route path="/" element={<OnboardingGuard />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/perfil" element={<ProfilePage />} />
