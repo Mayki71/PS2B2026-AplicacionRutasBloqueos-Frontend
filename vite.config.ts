@@ -55,10 +55,25 @@ export default defineConfig({
             urlPattern: /^https:\/\/.*\.supabase\.co\/.*/,
             handler: "NetworkOnly",
           },
-          // Excluir Socket.io 
+          // Excluir Socket.io
           {
             urlPattern: /\/socket\.io\/.*/,
             handler: "NetworkOnly",
+          },
+          //offline caching para tiles de OpenStreetMap
+          {
+            urlPattern: /^https:\/\/.*\.tile\.openstreetmap\.org\/.*/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "osm-tiles",
+              expiration: {
+                maxEntries: 500,
+                maxAgeSeconds: 60 * 60 * 24 * 7, // 7 días
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
           },
         ],
       },
