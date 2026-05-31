@@ -47,6 +47,20 @@ export default defineConfig({
       },
       workbox: {
         maximumFileSizeToCacheInBytes: 3145728,
+        navigateFallback: "index.html",
+        navigateFallbackDenylist: [/^\/api/],
+        runtimeCaching: [
+          //Excluir Supabase
+          {
+            urlPattern: /^https:\/\/.*\.supabase\.co\/.*/,
+            handler: "NetworkOnly",
+          },
+          // Excluir Socket.io 
+          {
+            urlPattern: /\/socket\.io\/.*/,
+            handler: "NetworkOnly",
+          },
+        ],
       },
     }),
   ],
