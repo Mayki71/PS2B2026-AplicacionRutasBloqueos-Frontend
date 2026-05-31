@@ -14,8 +14,8 @@ export default defineConfig({
         enabled: false,
       },
       manifest: {
-        name: "AlterVía",
-        short_name: "AlterVía",
+        name: "Pazly",
+        short_name: "Pazly",
         description:
           "Reporta y consulta bloqueos viales en tiempo real en La Paz",
         start_url: "/",
