@@ -13,6 +13,32 @@ export default defineConfig({
       devOptions: {
         enabled: false,
       },
+      manifest: {
+        name: "AlterVía",
+        short_name: "AlterVía",
+        description:
+          "Reporta y consulta bloqueos viales en tiempo real en La Paz",
+        start_url: "/",
+        display: "standalone",
+        orientation: "portrait",
+        lang: "es",
+        theme_color: "#fca311",
+        background_color: "#14213d",
+        icons: [
+          {
+            src: "/icons/icon-192.png",
+            sizes: "192x192",
+            type: "image/png",
+            purpose: "any",
+          },
+          {
+            src: "/icons/icon-512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "any maskable",
+          },
+        ],
+      },
       workbox: {
         maximumFileSizeToCacheInBytes: 3145728,
       },
